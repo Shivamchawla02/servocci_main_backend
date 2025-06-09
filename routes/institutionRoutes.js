@@ -3,7 +3,7 @@ import { registerInstitution, loginInstitution } from "../controllers/institutio
 
 const router = express.Router();
 
-router.post("/register", registerInstitution);
-router.post("/login", loginInstitution);
+router.post("/register-institution", registerInstitution);
+router.post("/login-institution", loginInstitution);
 
 export default router;
