@@ -4,7 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import authRoutes from "./routes/auth.js";
-import institutionRoutes from "./routes/institution.js";  // <--- Add this
+import institutionRoutes from "./routes/institutionRoutes.js";  // <--- Add this
 
 dotenv.config();
 const app = express();
