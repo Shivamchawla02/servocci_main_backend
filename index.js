@@ -4,6 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import authRoutes from "./routes/auth.js";
+import institutionRoutes from "./routes/institution.js";  // <--- Add this
 
 dotenv.config();
 const app = express();
@@ -16,7 +17,7 @@ app.use(cors({
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
-app.use("/api/institution", institutionRoutes);
+app.use("/api/institution", institutionRoutes); // institution routes
 
 app.get("/", (req, res) => {
   res.send("API is running...");
