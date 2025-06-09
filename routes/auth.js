@@ -1,24 +1,21 @@
 import express from "express";
-import bcrypt from "bcryptjs";  // bcryptjs is easier to work with in many environments
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Student from "../models/Student.js";
+import Institution from "../models/Institution.js";
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here"; // Use env var in production
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
 
-// REGISTER
+// --- STUDENT REGISTER ---
 router.post("/register", async (req, res) => {
   const { name, email, phone, password } = req.body;
 
   try {
-    // Check if user already exists
     const existing = await Student.findOne({ email });
     if (existing) return res.status(400).json({ msg: "Email already registered" });
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create and save new student
     const newStudent = new Student({ name, email, phone, password: hashedPassword });
     await newStudent.save();
 
@@ -29,23 +26,19 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// LOGIN
+// --- STUDENT LOGIN ---
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Find user by email
     const student = await Student.findOne({ email });
     if (!student) return res.status(400).json({ msg: "Invalid email or password" });
 
-    // Compare password
     const isMatch = await bcrypt.compare(password, student.password);
     if (!isMatch) return res.status(400).json({ msg: "Invalid email or password" });
 
-    // Generate JWT token
     const token = jwt.sign({ id: student._id, email: student.email }, JWT_SECRET, { expiresIn: "1d" });
 
-    // Respond with token and user info
     return res.json({
       token,
       user: {
@@ -57,6 +50,76 @@ router.post("/login", async (req, res) => {
     });
   } catch (err) {
     console.error("Login error:", err);
+    return res.status(500).json({ msg: "Server error" });
+  }
+});
+
+// --- INSTITUTION REGISTER ---
+router.post("/register-institution", async (req, res) => {
+  const {
+    name,
+    type,
+    affiliation,
+    address,
+    state,
+    city,
+    pincode,
+    phone,
+    email,
+    password,
+  } = req.body;
+
+  try {
+    const existing = await Institution.findOne({ email });
+    if (existing) return res.status(400).json({ msg: "Email already registered" });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newInstitution = new Institution({
+      name,
+      type,
+      affiliation,
+      address,
+      state,
+      city,
+      pincode,
+      phone,
+      email,
+      password: hashedPassword,
+    });
+    await newInstitution.save();
+
+    return res.status(201).json({ msg: "Institution registered successfully" });
+  } catch (err) {
+    console.error("Institution Register error:", err);
+    return res.status(500).json({ msg: "Server error" });
+  }
+});
+
+// --- INSTITUTION LOGIN ---
+router.post("/login-institution", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const institution = await Institution.findOne({ email });
+    if (!institution) return res.status(400).json({ msg: "Invalid email or password" });
+
+    const isMatch = await bcrypt.compare(password, institution.password);
+    if (!isMatch) return res.status(400).json({ msg: "Invalid email or password" });
+
+    const token = jwt.sign({ id: institution._id, email: institution.email }, JWT_SECRET, { expiresIn: "1d" });
+
+    return res.json({
+      token,
+      user: {
+        id: institution._id,
+        name: institution.name,
+        email: institution.email,
+        phone: institution.phone,
+        type: institution.type,
+      },
+    });
+  } catch (err) {
+    console.error("Institution Login error:", err);
     return res.status(500).json({ msg: "Server error" });
   }
 });
