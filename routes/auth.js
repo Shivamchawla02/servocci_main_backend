@@ -26,33 +26,86 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// --- STUDENT LOGIN ---
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const student = await Student.findOne({ email });
-    if (!student) return res.status(400).json({ msg: "Invalid email or password" });
+    // Try Institution first
+    let user = await Institution.findOne({ email });
+    let role = "institution";
 
-    const isMatch = await bcrypt.compare(password, student.password);
-    if (!isMatch) return res.status(400).json({ msg: "Invalid email or password" });
+    if (!user) {
+      // If not found, try Student
+      user = await Student.findOne({ email });
+      role = "student";
+    }
 
-    const token = jwt.sign({ id: student._id, email: student.email }, JWT_SECRET, { expiresIn: "1d" });
+    if (!user) {
+      return res.status(400).json({ msg: "Invalid email or password" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ msg: "Invalid email or password" });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, email: user.email, role },
+      JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    // Prepare user data based on role
+    let userData = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role,
+    };
+
+    // Add extra fields for institution
+    if (role === "institution") {
+      userData.type = user.type;
+    }
 
     return res.json({
       token,
-      user: {
-        id: student._id,
-        name: student.name,
-        email: student.email,
-        phone: student.phone,
-      },
+      user: userData,
     });
   } catch (err) {
     console.error("Login error:", err);
     return res.status(500).json({ msg: "Server error" });
   }
 });
+
+// --- STUDENT LOGIN ---
+// router.post("/login", async (req, res) => {
+//   const { email, password } = req.body;
+
+//   try {
+//     const student = await Student.findOne({ email });
+//     if (!student) return res.status(400).json({ msg: "Invalid email or password" });
+
+//     const isMatch = await bcrypt.compare(password, student.password);
+//     if (!isMatch) return res.status(400).json({ msg: "Invalid email or password" });
+
+//     const token = jwt.sign({ id: student._id, email: student.email }, JWT_SECRET, { expiresIn: "1d" });
+
+//     return res.json({
+//       token,
+//       user: {
+//         id: student._id,
+//         name: student.name,
+//         email: student.email,
+//         phone: student.phone,
+//       },
+//     });
+//   } catch (err) {
+//     console.error("Login error:", err);
+//     return res.status(500).json({ msg: "Server error" });
+//   }
+// });
 
 // --- INSTITUTION REGISTER ---
 router.post("/register-institution", async (req, res) => {
@@ -96,32 +149,32 @@ router.post("/register-institution", async (req, res) => {
 });
 
 // --- INSTITUTION LOGIN ---
-router.post("/login-institution", async (req, res) => {
-  const { email, password } = req.body;
+// router.post("/login-institution", async (req, res) => {
+//   const { email, password } = req.body;
 
-  try {
-    const institution = await Institution.findOne({ email });
-    if (!institution) return res.status(400).json({ msg: "Invalid email or password" });
+//   try {
+//     const institution = await Institution.findOne({ email });
+//     if (!institution) return res.status(400).json({ msg: "Invalid email or password" });
 
-    const isMatch = await bcrypt.compare(password, institution.password);
-    if (!isMatch) return res.status(400).json({ msg: "Invalid email or password" });
+//     const isMatch = await bcrypt.compare(password, institution.password);
+//     if (!isMatch) return res.status(400).json({ msg: "Invalid email or password" });
 
-    const token = jwt.sign({ id: institution._id, email: institution.email }, JWT_SECRET, { expiresIn: "1d" });
+//     const token = jwt.sign({ id: institution._id, email: institution.email }, JWT_SECRET, { expiresIn: "1d" });
 
-    return res.json({
-      token,
-      user: {
-        id: institution._id,
-        name: institution.name,
-        email: institution.email,
-        phone: institution.phone,
-        type: institution.type,
-      },
-    });
-  } catch (err) {
-    console.error("Institution Login error:", err);
-    return res.status(500).json({ msg: "Server error" });
-  }
-});
+//     return res.json({
+//       token,
+//       user: {
+//         id: institution._id,
+//         name: institution.name,
+//         email: institution.email,
+//         phone: institution.phone,
+//         type: institution.type,
+//       },
+//     });
+//   } catch (err) {
+//     console.error("Institution Login error:", err);
+//     return res.status(500).json({ msg: "Server error" });
+//   }
+// });
 
 export default router;
