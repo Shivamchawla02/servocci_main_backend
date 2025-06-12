@@ -9,7 +9,7 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-  origin: "https://servocci-main.vercel.app",
+  origin: "https://servocci.com",
   credentials: true,
 }));
 
