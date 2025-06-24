@@ -5,6 +5,7 @@ const FreeCounsellingRequestSchema = new mongoose.Schema({
   phone: { type: String, required: true },
   email: { type: String },
   preferredDate: { type: String, required: true },
+  preferredTime: { type: String, required: true },  // ✅ added preferredTime
   message: { type: String },
   createdAt: { type: Date, default: Date.now }
 });

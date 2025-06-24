@@ -3,10 +3,10 @@ import nodemailer from "nodemailer";
 
 export const createBooking = async (req, res) => {
   try {
-    const { name, phone, email, preferredDate, message } = req.body;
+    const { name, phone, email, preferredDate, preferredTime, message } = req.body;
 
-    if (!name || !phone || !preferredDate) {
-      return res.status(400).json({ msg: "Name, phone, and preferred date are required." });
+    if (!name || !phone || !preferredDate || !preferredTime) {
+      return res.status(400).json({ msg: "Name, phone, preferred date, and preferred time are required." });
     }
 
     // Save to DB
@@ -15,6 +15,7 @@ export const createBooking = async (req, res) => {
       phone,
       email,
       preferredDate,
+      preferredTime,
       message
     });
     await newBooking.save();
@@ -40,6 +41,7 @@ export const createBooking = async (req, res) => {
           <p><strong>Details:</strong><br/>
           Phone: ${phone}<br/>
           Preferred Date: ${preferredDate}<br/>
+          Preferred Time: ${preferredTime}<br/>
           Message: ${message || 'N/A'}</p>
           <p>Best regards,<br/>Servocci Counsellors</p>
         `
@@ -57,6 +59,7 @@ export const createBooking = async (req, res) => {
         <strong>Phone:</strong> ${phone}<br/>
         <strong>Email:</strong> ${email || 'N/A'}<br/>
         <strong>Preferred Date:</strong> ${preferredDate}<br/>
+        <strong>Preferred Time:</strong> ${preferredTime}<br/>
         <strong>Message:</strong> ${message || 'N/A'}</p>
       `
     });
