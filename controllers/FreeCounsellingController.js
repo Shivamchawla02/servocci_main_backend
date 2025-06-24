@@ -9,6 +9,7 @@ export const createBooking = async (req, res) => {
       return res.status(400).json({ msg: "Name, phone, and preferred date are required." });
     }
 
+    // Save to DB
     const newBooking = new FreeCounsellingRequest({
       name,
       phone,
@@ -16,16 +17,14 @@ export const createBooking = async (req, res) => {
       preferredDate,
       message
     });
-
-
     await newBooking.save();
 
-    // === Nodemailer setup ===
+    // Nodemailer setup
     const transporter = nodemailer.createTransport({
-      service: "gmail",  // or another service like Outlook, Zoho, etc.
+      service: "gmail",
       auth: {
-        user: process.env.EMAIL_USER,  // your email address
-        pass: process.env.EMAIL_PASS   // your app password or actual password
+        user: process.env.EMAIL_USER,  // hello@servocci.com
+        pass: process.env.EMAIL_PASS   // app password
       }
     });
 
@@ -47,10 +46,10 @@ export const createBooking = async (req, res) => {
       });
     }
 
-    // 📩 Email to your institution
+    // 📩 Email to admin (hello@servocci.com)
     await transporter.sendMail({
       from: `"Servocci Counsellors" <${process.env.EMAIL_USER}>`,
-      to: "info@servocci.com",  // your institution email
+      to: process.env.EMAIL_USER,  // send to hello@servocci.com
       subject: "New Free Counselling Booking",
       html: `
         <p>A new free counselling request has been submitted:</p>
