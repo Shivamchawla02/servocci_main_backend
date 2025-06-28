@@ -4,7 +4,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import authRoutes from "./routes/auth.js";
-import freeCounsellingRoutes from "./routes/freeCounselling.js";  // 👉 NEW
+import freeCounsellingRoutes from "./routes/freeCounselling.js";
+import emailRoutes from "./routes/emailRoutes.js"; // 👈 Add this line
 
 dotenv.config();
 const app = express();
@@ -16,8 +17,10 @@ app.use(cors({
 
 app.use(express.json());
 
+// Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/free-counselling", freeCounsellingRoutes);  // 👉 NEW
+app.use("/api/free-counselling", freeCounsellingRoutes);
+app.use("/api/contact", emailRoutes); // 👈 Add this line
 
 app.get("/", (req, res) => {
   res.send("API is running...");
