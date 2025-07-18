@@ -28,6 +28,10 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
+app.get("/healthz", (req, res) => {
+  res.status(200).json({ status: "ok", message: "Server is healthy" });
+});
+
 const PORT = process.env.PORT || 5000;
 
 mongoose
