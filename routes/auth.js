@@ -30,32 +30,37 @@ router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Try Institution first
+    // 1️⃣ Check Institution first
     let user = await Institution.findOne({ email });
     let role = "institution";
 
+    // 2️⃣ If not an institution, check Student
     if (!user) {
-      // If not found, try Student
       user = await Student.findOne({ email });
-      role = "student";
+      if (user) {
+        role = user.isAdmin ? "admin" : "student";  // ✅ CHECK ADMIN FLAG HERE
+      }
     }
 
+    // 3️⃣ If still no user, return error
     if (!user) {
       return res.status(400).json({ msg: "Invalid email or password" });
     }
 
+    // 4️⃣ Verify password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ msg: "Invalid email or password" });
     }
 
+    // 5️⃣ Generate JWT with role inside
     const token = jwt.sign(
       { id: user._id, email: user.email, role },
       JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    // Prepare user data based on role
+    // 6️⃣ Prepare userData
     let userData = {
       id: user._id,
       name: user.name,
@@ -64,7 +69,6 @@ router.post("/login", async (req, res) => {
       role,
     };
 
-    // Add extra fields for institution
     if (role === "institution") {
       userData.type = user.type;
     }
@@ -78,6 +82,7 @@ router.post("/login", async (req, res) => {
     return res.status(500).json({ msg: "Server error" });
   }
 });
+
 
 // --- STUDENT LOGIN ---
 // router.post("/login", async (req, res) => {
