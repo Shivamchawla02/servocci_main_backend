@@ -1,9 +1,12 @@
 import express from "express";
-import { createBooking } from "../controllers/FreeCounsellingController.js";
+import { createBooking, getAllBookings } from "../controllers/FreeCounsellingController.js";
 
 const router = express.Router();
 
-// POST /api/free-counselling
+// ✅ User submits booking
 router.post("/", createBooking);
+
+// ✅ Admin fetches all bookings
+router.get("/", getAllBookings);
 
 export default router;

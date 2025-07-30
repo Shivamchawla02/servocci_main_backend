@@ -23,6 +23,7 @@ app.use(express.json());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/free-counselling", freeCounsellingRoutes);
+app.use("/api/counselling-requests", freeCounsellingRoutes);
 app.use("/api/contact", emailRoutes); // 👈 Add this line
 app.use("/api/mbbs-colleges", mbbsCollegeRoutes);
 app.use("/api/resumes", resumeRoutes);

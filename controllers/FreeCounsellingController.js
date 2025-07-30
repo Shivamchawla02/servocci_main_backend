@@ -51,7 +51,7 @@ export const createBooking = async (req, res) => {
     // 📩 Email to admin (hello@servocci.com)
     await transporter.sendMail({
       from: `"Servocci Counsellors" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER,  // send to hello@servocci.com
+      to: process.env.EMAIL_USER,
       subject: "New Free Counselling Booking",
       html: `
         <p>A new free counselling request has been submitted:</p>
@@ -69,5 +69,18 @@ export const createBooking = async (req, res) => {
   } catch (err) {
     console.error("FreeCounselling create error:", err);
     return res.status(500).json({ msg: "Server error" });
+  }
+};
+
+
+
+// ✅ NEW FUNCTION: Get all counselling requests (for admin dashboard)
+export const getAllBookings = async (req, res) => {
+  try {
+    const requests = await FreeCounsellingRequest.find().sort({ createdAt: -1 });
+    res.status(200).json(requests);
+  } catch (err) {
+    console.error("Error fetching counselling requests:", err);
+    res.status(500).json({ msg: "Server error" });
   }
 };
