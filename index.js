@@ -8,6 +8,7 @@ import freeCounsellingRoutes from "./routes/freeCounselling.js";
 import emailRoutes from "./routes/emailRoutes.js"; // 👈 Add this line
 import mbbsCollegeRoutes from "./routes/mbbsColleges.js";
 import resumeRoutes from "./routes/resumeRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -25,6 +26,7 @@ app.use("/api/free-counselling", freeCounsellingRoutes);
 app.use("/api/contact", emailRoutes); // 👈 Add this line
 app.use("/api/mbbs-colleges", mbbsCollegeRoutes);
 app.use("/api/resumes", resumeRoutes);
+app.use("/api", adminRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running...");
