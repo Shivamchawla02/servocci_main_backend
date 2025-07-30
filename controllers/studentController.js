@@ -23,6 +23,7 @@ export const loginStudent = async (req, res) => {
         name: student.name,
         email: student.email,
         phone: student.phone,
+        isAdmin: student.isAdmin
       },
     });
   } catch (err) {
