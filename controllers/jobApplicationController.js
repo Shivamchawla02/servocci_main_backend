@@ -77,3 +77,14 @@ export const saveJobApplication = async (req, res) => {
     res.status(500).json({ message: "Server error while saving application." });
   }
 };
+
+export const getJobApplications = async (req, res) => {
+  try {
+    const applications = await JobApplication.find().sort({ createdAt: -1 });
+    res.status(200).json(applications);
+  } catch (error) {
+    console.error("❌ Error fetching applications:", error);
+    res.status(500).json({ message: "Server error while fetching applications." });
+  }
+};
+
