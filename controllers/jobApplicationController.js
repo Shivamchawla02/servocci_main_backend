@@ -14,6 +14,7 @@ export const saveJobApplication = async (req, res) => {
     const {
       fullName,
       email,
+      phone, // ✅ Added
       resumeUrl,
       jobTitle,
       company,
@@ -29,6 +30,7 @@ export const saveJobApplication = async (req, res) => {
     const newApplication = new JobApplication({
       fullName,
       email,
+      phone, // ✅ Save phone
       resumeUrl,
       jobTitle,
       company,
@@ -49,6 +51,7 @@ export const saveJobApplication = async (req, res) => {
         <ul>
           <li><strong>Name:</strong> ${fullName}</li>
           <li><strong>Email:</strong> ${email}</li>
+          <li><strong>Phone:</strong> ${phone || "N/A"}</li>
           <li><strong>Job:</strong> ${jobTitle} @ ${company}</li>
           <li><strong>Location:</strong> ${location || "N/A"}</li>
           <li><strong>Preferred Date:</strong> ${preferredDate || "Not specified"}</li>
@@ -87,4 +90,3 @@ export const getJobApplications = async (req, res) => {
     res.status(500).json({ message: "Server error while fetching applications." });
   }
 };
-

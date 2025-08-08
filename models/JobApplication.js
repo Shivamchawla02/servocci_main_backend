@@ -4,6 +4,7 @@ const jobApplicationSchema = new mongoose.Schema(
   {
     fullName: String,
     email: String,
+    phone: String, // ✅ Added phone number
     resumeUrl: String,
     jobTitle: String,
     company: String,
