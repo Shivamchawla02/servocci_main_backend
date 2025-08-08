@@ -3,7 +3,7 @@ import nodemailer from "nodemailer";
 
 export const createBooking = async (req, res) => {
   try {
-    const { name, phone, email, preferredDate, preferredTime, message } = req.body;
+    const { name, phone, email, preferredDate, preferredTime, message, course } = req.body;
 
     if (!name || !phone || !preferredDate || !preferredTime) {
       return res.status(400).json({ msg: "Name, phone, preferred date, and preferred time are required." });
@@ -16,7 +16,8 @@ export const createBooking = async (req, res) => {
       email,
       preferredDate,
       preferredTime,
-      message
+      message,
+      course
     });
     await newBooking.save();
 
@@ -42,6 +43,7 @@ export const createBooking = async (req, res) => {
           Phone: ${phone}<br/>
           Preferred Date: ${preferredDate}<br/>
           Preferred Time: ${preferredTime}<br/>
+          Course: ${course || 'N/A'}<br/>
           Message: ${message || 'N/A'}</p>
           <p>Best regards,<br/>Servocci Counsellors</p>
         `
@@ -60,6 +62,7 @@ export const createBooking = async (req, res) => {
         <strong>Email:</strong> ${email || 'N/A'}<br/>
         <strong>Preferred Date:</strong> ${preferredDate}<br/>
         <strong>Preferred Time:</strong> ${preferredTime}<br/>
+        <strong>Course:</strong> ${course || 'N/A'}<br/>
         <strong>Message:</strong> ${message || 'N/A'}</p>
       `
     });
@@ -71,7 +74,6 @@ export const createBooking = async (req, res) => {
     return res.status(500).json({ msg: "Server error" });
   }
 };
-
 
 
 // ✅ NEW FUNCTION: Get all counselling requests (for admin dashboard)
