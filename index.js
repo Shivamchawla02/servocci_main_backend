@@ -15,7 +15,7 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-  origin: "https://servocci.com",
+  origin: ["https://servocci.com", "https://placements.servocci.com"],
   credentials: true,
 }));
 
