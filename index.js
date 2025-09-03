@@ -10,6 +10,7 @@ import mbbsCollegeRoutes from "./routes/mbbsColleges.js";
 import resumeRoutes from "./routes/resumeRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import jobApplicationRoutes from "./routes/jobApplicationRoutes.js";
+import blogRoutes from "./routes/blogRoutes.js"; 
 
 dotenv.config();
 const app = express();
@@ -30,6 +31,7 @@ app.use("/api/mbbs-colleges", mbbsCollegeRoutes);
 app.use("/api/resumes", resumeRoutes);
 app.use("/api", adminRoutes);
 app.use("/api/job-applications", jobApplicationRoutes);
+app.use("/api/blogs", blogRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running...");
