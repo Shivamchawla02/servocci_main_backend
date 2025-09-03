@@ -1,25 +1,12 @@
 import express from "express";
-import multer from "multer";
 import Blog from "../models/Blog.js";
 
 const router = express.Router();
 
-// ⚡ Setup Multer for image uploads (store in /uploads folder)
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-
-const upload = multer({ storage });
-
 /**
- * 📌 Add Blog (default: unapproved)
+ * 📌 Add Blog (default: unapproved, no image)
  */
-router.post("/", upload.single("image"), async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const { title, category, description, content, authorName, authorRole } =
       req.body;
@@ -30,13 +17,14 @@ router.post("/", upload.single("image"), async (req, res) => {
       description,
       content,
       author: { name: authorName, role: authorRole },
-      image: req.file ? `/uploads/${req.file.filename}` : null,
       slug: title.toLowerCase().replace(/ /g, "-"),
-      approved: false, // 👈 Default not approved
+      approved: false, // 👈 Default: not approved
     });
 
     await blog.save();
-    res.status(201).json({ message: "Blog created successfully (pending approval)!", blog });
+    res
+      .status(201)
+      .json({ message: "Blog created successfully (pending approval)!", blog });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -88,8 +76,14 @@ router.patch("/:id/approve", async (req, res) => {
  */
 router.get("/:slug", async (req, res) => {
   try {
-    const blog = await Blog.findOne({ slug: req.params.slug, approved: true });
-    if (!blog) return res.status(404).json({ message: "Blog not found or not approved yet" });
+    const blog = await Blog.findOne({
+      slug: req.params.slug,
+      approved: true,
+    });
+    if (!blog)
+      return res
+        .status(404)
+        .json({ message: "Blog not found or not approved yet" });
     res.json(blog);
   } catch (err) {
     res.status(500).json({ error: err.message });
