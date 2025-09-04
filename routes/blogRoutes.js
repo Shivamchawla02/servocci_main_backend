@@ -4,12 +4,29 @@ import Blog from "../models/Blog.js";
 const router = express.Router();
 
 /**
+ * 📌 Generate a unique slug
+ */
+const generateUniqueSlug = async (title) => {
+  let baseSlug = title.toLowerCase().replace(/ /g, "-").replace(/[^\w-]+/g, "");
+  let slug = baseSlug;
+  let counter = 1;
+
+  while (await Blog.findOne({ slug })) {
+    slug = `${baseSlug}-${counter}`;
+    counter++;
+  }
+
+  return slug;
+};
+
+/**
  * 📌 Add Blog (default: unapproved, no image)
  */
 router.post("/", async (req, res) => {
   try {
-    const { title, category, description, content, authorName, authorRole } =
-      req.body;
+    const { title, category, description, content, authorName, authorRole } = req.body;
+
+    const slug = await generateUniqueSlug(title);
 
     const blog = new Blog({
       title,
@@ -17,9 +34,9 @@ router.post("/", async (req, res) => {
       description,
       content,
       author: { name: authorName, role: authorRole },
-      slug: title.toLowerCase().replace(/ /g, "-"),
-      approved: false, // 👈 Default: not approved
-      deleted: false,  // 👈 Default: not deleted
+      slug,
+      approved: false,
+      deleted: false,
     });
 
     await blog.save();
@@ -27,6 +44,7 @@ router.post("/", async (req, res) => {
       .status(201)
       .json({ message: "Blog created successfully (pending approval)!", blog });
   } catch (err) {
+    console.error("Error creating blog:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -145,6 +163,5 @@ router.patch("/:id/restore", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 export default router;
