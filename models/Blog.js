@@ -6,13 +6,14 @@ const blogSchema = new mongoose.Schema({
   description: { type: String, required: true },
   content: { type: String, required: true },
   category: { type: String, required: true },
-  author: {
-    name: { type: String, required: true },
-    role: { type: String, required: true },
-  },
+
+  // ✅ Flattened fields instead of nested author
+  authorName: { type: String, required: true },
+  authorRole: { type: String, required: true },
+
   date: { type: Date, default: Date.now },
   approved: { type: Boolean, default: false },
-  deleted: { type: Boolean, default: false }, // 👈 new soft delete flag
+  deleted: { type: Boolean, default: false }, // soft delete flag
 });
 
 export default mongoose.model("Blog", blogSchema);

@@ -26,6 +26,10 @@ router.post("/", async (req, res) => {
   try {
     const { title, category, description, content, authorName, authorRole } = req.body;
 
+    if (!title || !category || !description || !content || !authorName || !authorRole) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
     const slug = await generateUniqueSlug(title);
 
     const blog = new Blog({
@@ -33,7 +37,8 @@ router.post("/", async (req, res) => {
       category,
       description,
       content,
-      author: { name: authorName, role: authorRole },
+      authorName, // ✅ flattened field
+      authorRole, // ✅ flattened field
       slug,
       approved: false,
       deleted: false,
