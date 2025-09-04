@@ -11,7 +11,8 @@ const blogSchema = new mongoose.Schema({
     role: { type: String, required: true },
   },
   date: { type: Date, default: Date.now },
-  approved: { type: Boolean, default: false }, // 👈 stays
+  approved: { type: Boolean, default: false },
+  deleted: { type: Boolean, default: false }, // 👈 new soft delete flag
 });
 
 export default mongoose.model("Blog", blogSchema);
