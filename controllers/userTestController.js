@@ -1,5 +1,6 @@
 import UserTest from "../models/UserTest.js";
 
+// ➕ Save user test details
 export const addUserTest = async (req, res) => {
   try {
     const { name, phone, email } = req.body;
@@ -11,6 +12,16 @@ export const addUserTest = async (req, res) => {
     await newUser.save();
 
     res.status(201).json({ message: "Details saved successfully!" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// 📋 Get all user test submissions
+export const getAllUserTests = async (req, res) => {
+  try {
+    const users = await UserTest.find().sort({ createdAt: -1 });
+    res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
