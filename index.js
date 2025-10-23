@@ -12,6 +12,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import jobApplicationRoutes from "./routes/jobApplicationRoutes.js";
 import blogRoutes from "./routes/blogRoutes.js"; 
 import userTestRoutes from './routes/userTestRoutes.js';
+import paymentRoutes from "./routes/paymentRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -50,6 +51,8 @@ app.use("/api", adminRoutes);
 app.use("/api/job-applications", jobApplicationRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/user-test", userTestRoutes);
+// Register the CCAvenue payment routes
+app.use("/api/payment", paymentRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running...");
