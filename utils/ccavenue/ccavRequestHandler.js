@@ -5,43 +5,56 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const ccavRequestHandler = (req, res) => {
-  const workingKey = process.env.WORKING_KEY;
-  const accessCode = process.env.ACCESS_CODE;
-  const merchantId = process.env.MERCHANT_ID;
+  try {
+    const workingKey = process.env.WORKING_KEY;
+    const accessCode = process.env.ACCESS_CODE;
+    const merchantId = process.env.MERCHANT_ID;
 
-  const paymentData = {
-    merchant_id: merchantId,
-    order_id: req.body.order_id || "ORD" + Date.now(),
-    currency: "INR",
-    amount: req.body.amount || "10.00",
-    redirect_url: process.env.REDIRECT_URL,
-    cancel_url: process.env.CANCEL_URL,
-    language: "EN",
-    billing_name: req.body.billing_name || "Guest User",
-    billing_email: req.body.billing_email || "guest@example.com",
-  };
+    // Ensure amount is a string with 2 decimals
+    const amount = parseFloat(req.body.amount || 10).toFixed(2);
 
-  const body = new URLSearchParams(paymentData).toString();
+    // Prepare payload for CCAvenue
+    const paymentData = {
+      merchant_id: merchantId,
+      order_id: req.body.order_id || "ORD" + Date.now(),
+      currency: "INR",
+      amount: amount,
+      redirect_url: process.env.REDIRECT_URL,
+      cancel_url: process.env.CANCEL_URL,
+      language: "EN",
+      billing_name: req.body.billing_name || "Guest User",
+      billing_email: req.body.billing_email || "guest@example.com",
+    };
 
-  // ✅ AES key = MD5 hash of working key
-  const key = crypto.createHash("md5").update(workingKey).digest();
+    // Convert to URL-encoded string
+    const body = new URLSearchParams(paymentData).toString();
 
-  // ✅ IV = 16 bytes (0x00..0x0f)
-  const iv = Buffer.from([...Array(16).keys()]);
+    console.log("✅ CCAvenue Payload:", body); // Debugging
 
-  // ✅ Encrypt request and encode in base64
-  const encRequest = encrypt(body, key, iv);
+    // AES-128-CBC encryption key & IV
+    const key = crypto.createHash("md5").update(workingKey).digest();
+    const iv = Buffer.from([...Array(16).keys()]);
 
-  // ✅ Auto-submit form to CCAvenue
-  const formBody = `
+    // Encrypt the request
+    const encRequest = encrypt(body, key, iv);
+
+    // HTML form for auto-submission
+    const formBody = `
+<html>
+  <body>
     <form method="post" name="redirect" action="https://secure.ccavenue.com/transaction/initTrans">
       <input type="hidden" name="encRequest" value="${encRequest}">
       <input type="hidden" name="access_code" value="${accessCode}">
-      <script>document.redirect.submit();</script>
     </form>
-  `;
+    <script>document.redirect.submit();</script>
+  </body>
+</html>
+`;
 
-  res.writeHead(200, { "Content-Type": "text/html" });
-  res.write(formBody);
-  res.end();
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end(formBody);
+  } catch (err) {
+    console.error("❌ CCAvenue Request Handler Error:", err);
+    res.status(500).send("Error initiating payment. Please try again.");
+  }
 };
