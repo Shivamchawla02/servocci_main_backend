@@ -7,6 +7,7 @@ import Payment from "../../models/Payment.js";
 dotenv.config();
 
 export const ccavResponseHandler = (req, res) => {
+  const workingKey = process.env.WORKING_KEY;
   let ccavEncResponse = "";
 
   req.on("data", (data) => {
@@ -18,8 +19,7 @@ export const ccavResponseHandler = (req, res) => {
       const ccavPOST = querystring.parse(ccavEncResponse);
       const encResp = ccavPOST.encResp;
 
-      // Raw key & IV
-      const key = crypto.createHash("md5").update(process.env.WORKING_KEY).digest();
+      const key = crypto.createHash("md5").update(workingKey).digest();
       const iv = Buffer.from([...Array(16).keys()]);
 
       const decrypted = decrypt(encResp, key, iv);
@@ -28,7 +28,6 @@ export const ccavResponseHandler = (req, res) => {
         decrypted.split("&").map((pair) => pair.split("="))
       );
 
-      // Save to MongoDB
       await Payment.create({
         order_id: responseData.order_id,
         tracking_id: responseData.tracking_id,
@@ -46,13 +45,17 @@ export const ccavResponseHandler = (req, res) => {
         raw_response: decrypted,
       });
 
-      const redirectURL = `https://www.servocci.com/payment-status?status=${
-        responseData.order_status === "Success" ? "success" : "failed"
-      }&order_id=${responseData.order_id}`;
+      let redirectURL = "https://www.servocci.com/payment-status";
+      if (responseData.order_status === "Success") {
+        redirectURL += "?status=success&order_id=" + responseData.order_id;
+      } else {
+        redirectURL += "?status=failed&order_id=" + responseData.order_id;
+      }
 
-      const message = responseData.order_status === "Success"
-        ? "🎉 Payment Successful"
-        : "❌ Payment Failed";
+      const message =
+        responseData.order_status === "Success"
+          ? "🎉 Payment Successful"
+          : "❌ Payment Failed";
 
       const responseHtml = `
         <html>
@@ -80,7 +83,7 @@ export const ccavResponseHandler = (req, res) => {
       res.writeHead(200, { "Content-Type": "text/html" });
       res.end(responseHtml);
     } catch (err) {
-      console.error("❌ Error handling payment response:", err);
+      console.error("❌ Error handling payment response:", err.message);
       res.statusCode = 500;
       res.end("Server Error");
     }

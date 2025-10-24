@@ -23,12 +23,16 @@ export const ccavRequestHandler = (req, res) => {
 
   const body = new URLSearchParams(paymentData).toString();
 
-  // Raw AES-128-CBC key & IV
+  // ✅ AES key = MD5 hash of working key
   const key = crypto.createHash("md5").update(workingKey).digest();
+
+  // ✅ IV = 16 bytes (0x00..0x0f)
   const iv = Buffer.from([...Array(16).keys()]);
 
+  // ✅ Encrypt request and encode in base64
   const encRequest = encrypt(body, key, iv);
 
+  // ✅ Auto-submit form to CCAvenue
   const formBody = `
     <form method="post" name="redirect" action="https://secure.ccavenue.com/transaction/initTrans">
       <input type="hidden" name="encRequest" value="${encRequest}">
