@@ -1,38 +1,23 @@
 import crypto from "crypto";
 
-// Function to determine AES algorithm based on key length
-function getAlgorithm(keyBase64) {
-  const key = Buffer.from(keyBase64, "base64");
-  switch (key.length) {
-    case 16:
-      return "aes-128-cbc";
-    case 32:
-      return "aes-256-cbc";
-    default:
-      throw new Error("Invalid key length: " + key.length);
-  }
-}
+// Encrypt (CCAvenue format)
+export const encrypt = (plainText, workingKey) => {
+  const key = crypto.createHash("md5").update(workingKey).digest(); // AES-128 key
+  const iv = Buffer.alloc(16, "\0"); // 16 null bytes
+  const cipher = crypto.createCipheriv("aes-128-cbc", key, iv);
 
-// Encrypt plain text
-export const encrypt = (plainText, keyBase64, ivBase64) => {
-  const key = Buffer.from(keyBase64, "base64");
-  const iv = Buffer.from(ivBase64, "base64");
-
-  const cipher = crypto.createCipheriv(getAlgorithm(keyBase64), key, iv);
-  let encrypted = cipher.update(plainText, "utf8", "hex");
-  encrypted += cipher.final("hex");
-
+  let encrypted = cipher.update(plainText, "utf8", "base64");
+  encrypted += cipher.final("base64");
   return encrypted;
 };
 
-// Decrypt cipher text
-export const decrypt = (messageHex, keyBase64, ivBase64) => {
-  const key = Buffer.from(keyBase64, "base64");
-  const iv = Buffer.from(ivBase64, "base64");
+// Decrypt (CCAvenue format)
+export const decrypt = (encText, workingKey) => {
+  const key = crypto.createHash("md5").update(workingKey).digest();
+  const iv = Buffer.alloc(16, "\0");
+  const decipher = crypto.createDecipheriv("aes-128-cbc", key, iv);
 
-  const decipher = crypto.createDecipheriv(getAlgorithm(keyBase64), key, iv);
-  let decrypted = decipher.update(messageHex, "hex", "utf8");
+  let decrypted = decipher.update(encText, "base64", "utf8");
   decrypted += decipher.final("utf8");
-
   return decrypted;
 };
