@@ -7,7 +7,6 @@ import Payment from "../../models/Payment.js";
 dotenv.config();
 
 export const ccavResponseHandler = (req, res) => {
-  const workingKey = process.env.WORKING_KEY;
   let ccavEncResponse = "";
 
   req.on("data", (data) => {
@@ -19,24 +18,17 @@ export const ccavResponseHandler = (req, res) => {
       const ccavPOST = querystring.parse(ccavEncResponse);
       const encResp = ccavPOST.encResp;
 
-      // Decrypt the response
-      const md5 = crypto.createHash("md5").update(workingKey).digest();
-      const keyBase64 = Buffer.from(md5).toString("base64");
-      const ivBase64 = Buffer.from([
-        0x00, 0x01, 0x02, 0x03,
-        0x04, 0x05, 0x06, 0x07,
-        0x08, 0x09, 0x0a, 0x0b,
-        0x0c, 0x0d, 0x0e, 0x0f,
-      ]).toString("base64");
+      // Raw key & IV
+      const key = crypto.createHash("md5").update(process.env.WORKING_KEY).digest();
+      const iv = Buffer.from([...Array(16).keys()]);
 
-      const decrypted = decrypt(encResp, keyBase64, ivBase64);
+      const decrypted = decrypt(encResp, key, iv);
 
-      // Convert response string (a=b&c=d) → JS Object
       const responseData = Object.fromEntries(
         decrypted.split("&").map((pair) => pair.split("="))
       );
 
-      // ✅ Save payment info in MongoDB
+      // Save to MongoDB
       await Payment.create({
         order_id: responseData.order_id,
         tracking_id: responseData.tracking_id,
@@ -54,21 +46,13 @@ export const ccavResponseHandler = (req, res) => {
         raw_response: decrypted,
       });
 
-      console.log("✅ Payment saved:", responseData.order_id);
+      const redirectURL = `https://www.servocci.com/payment-status?status=${
+        responseData.order_status === "Success" ? "success" : "failed"
+      }&order_id=${responseData.order_id}`;
 
-      // ✅ Prepare frontend redirect
-      let redirectURL = "https://www.servocci.com/payment-status";
-      if (responseData.order_status === "Success") {
-        redirectURL += "?status=success&order_id=" + responseData.order_id;
-      } else {
-        redirectURL += "?status=failed&order_id=" + responseData.order_id;
-      }
-
-      // ✅ Display friendly response + auto redirect
-      const message =
-        responseData.order_status === "Success"
-          ? "🎉 Payment Successful"
-          : "❌ Payment Failed";
+      const message = responseData.order_status === "Success"
+        ? "🎉 Payment Successful"
+        : "❌ Payment Failed";
 
       const responseHtml = `
         <html>
@@ -96,7 +80,7 @@ export const ccavResponseHandler = (req, res) => {
       res.writeHead(200, { "Content-Type": "text/html" });
       res.end(responseHtml);
     } catch (err) {
-      console.error("❌ Error handling payment response:", err.message);
+      console.error("❌ Error handling payment response:", err);
       res.statusCode = 500;
       res.end("Server Error");
     }
