@@ -10,6 +10,10 @@ const userTestSchema = new mongoose.Schema(
       enum: ["Basic", "Premium"],
       default: "Basic",
     },
+    reportUrl: {
+      type: String,
+      default: null, // 🆕 Optional Cloudinary PDF report URL
+    },
   },
   { timestamps: true }
 );

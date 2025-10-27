@@ -52,3 +52,44 @@ export const getAllUserTests = async (req, res) => {
     });
   }
 };
+
+// 📝 Update psychometric test report URL
+export const updateUserTestReport = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reportUrl } = req.body;
+
+    if (!reportUrl) {
+      return res.status(400).json({
+        success: false,
+        message: "Report URL is required",
+      });
+    }
+
+    const updatedUser = await UserTest.findByIdAndUpdate(
+      id,
+      { reportUrl },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Report URL updated successfully",
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.error("❌ Error updating report URL:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
