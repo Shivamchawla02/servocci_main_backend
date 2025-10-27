@@ -20,10 +20,12 @@ const app = express();
 // ✅ Allowed Frontend Origins
 const allowedOrigins = [
   "http://localhost:5173",      // for local development
-  "https://servocci.com",       // live production site
+  "https://servocci.com",       // main production site
   "https://www.servocci.com",   // optional www version
-  "https://placements.servocci.com"
+  "https://placements.servocci.com", // placements portal
+  "https://psychometric.servocci.com" // 👈 new psychometric subdomain
 ];
+
 
 app.use(
   cors({
