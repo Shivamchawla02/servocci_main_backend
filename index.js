@@ -55,7 +55,7 @@ app.use("/api/resumes", resumeRoutes);
 app.use("/api", adminRoutes);
 app.use("/api/job-applications", jobApplicationRoutes);
 app.use("/api/blogs", blogRoutes);
-app.use("/api/user-test", userTestRoutes);
+app.use("/api/user-tests", userTestRoutes);
 app.use("/api/payment", paymentRoutes); // ✅ CCAvenue route
 
 // ✅ Default routes
