@@ -8,7 +8,9 @@ import {
 const router = express.Router();
 
 // ➕ Save user test details
-router.post("/add", addUserTest);
+// ➕ Save user test details
+router.post("/", addUserTest);   // ✅ new shortcut
+router.post("/add", addUserTest); // existing
 
 // 📋 Fetch all user test submissions
 router.get("/", getAllUserTests);
