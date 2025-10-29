@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import ccav from "./ccavutil.js";
+import * as ccav from "./ccavutil.js";
 import dotenv from "dotenv";
 
 dotenv.config();

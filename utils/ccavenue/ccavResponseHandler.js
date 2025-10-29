@@ -1,8 +1,8 @@
 import crypto from "crypto";
-import ccav from "./ccavutil.js";
+import * as ccav from "./ccavutil.js"; // ✅ FIXED import
 import dotenv from "dotenv";
 import qs from "querystring";
-import Payment from "../../models/Payment.js"; // ✅ make sure this path is correct
+import Payment from "../../models/Payment.js"; // make sure path is correct
 
 dotenv.config();
 
@@ -28,17 +28,24 @@ export const ccavResponseHandler = async (req, res) => {
     try {
       const ccavPOST = qs.parse(ccavEncResponse);
       const encResp = ccavPOST.encResp;
+
+      if (!encResp) {
+        console.error("❌ No encResp received from CCAvenue");
+        return res.status(400).send("No encResp received");
+      }
+
+      // ✅ Decrypt the response
       const decrypted = ccav.decrypt(encResp, keyBase64, ivBase64);
 
-      // Parse decrypted response into object
+      // Parse decrypted key-value pairs
       const pairs = decrypted.split("&");
       const responseData = {};
-      pairs.forEach((pair) => {
+      for (const pair of pairs) {
         const [key, value] = pair.split("=");
         responseData[key] = value;
-      });
+      }
 
-      // ✅ Save transaction data in MongoDB
+      // ✅ Save payment details to DB
       await Payment.create({
         order_id: responseData.order_id,
         tracking_id: responseData.tracking_id,
@@ -63,11 +70,11 @@ export const ccavResponseHandler = async (req, res) => {
 
       console.log("✅ Payment saved to DB:", responseData.order_status);
 
-      // ✅ Redirect user based on payment status
+      // ✅ Redirect user based on payment result
       if (responseData.order_status === "Success") {
-        return res.redirect("https://www.servocci.com/payment-success");
+        res.redirect("https://www.servocci.com/payment-success");
       } else {
-        return res.redirect("https://www.servocci.com/payment-failed");
+        res.redirect("https://www.servocci.com/payment-failed");
       }
     } catch (error) {
       console.error("❌ Error processing CCAvenue response:", error);
