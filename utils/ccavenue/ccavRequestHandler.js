@@ -7,7 +7,7 @@ dotenv.config();
 export const ccavRequestHandler = (req, res) => {
   let body = "";
 
-  const workingKey = process.env.WORKING_KEY; // ✅ from .env
+  const workingKey = process.env.WORKING_KEY;
   const accessCode = process.env.ACCESS_CODE;
 
   // MD5 + base64 encode key
@@ -30,12 +30,20 @@ export const ccavRequestHandler = (req, res) => {
     const encRequest = ccav.encrypt(body, keyBase64, ivBase64);
 
     const html = `
-      <form id="nonseamless" method="post" name="redirect"
-        action="https://secure.ccavenue.com/transaction/transaction.do?command=initiateTransaction">
-        <input type="hidden" id="encRequest" name="encRequest" value="${encRequest}">
-        <input type="hidden" name="access_code" id="access_code" value="${accessCode}">
-        <script>document.redirect.submit();</script>
-      </form>
+      <html>
+        <head><title>Redirecting...</title></head>
+        <body onload="document.forms[0].submit()">
+          <form
+            id="nonseamless"
+            method="post"
+            name="redirect"
+            action="https://secure.ccavenue.com/transaction/transaction.do?command=initiateTransaction"
+          >
+            <input type="hidden" id="encRequest" name="encRequest" value="${encRequest}">
+            <input type="hidden" name="access_code" id="access_code" value="${accessCode}">
+          </form>
+        </body>
+      </html>
     `;
 
     res.writeHead(200, { "Content-Type": "text/html" });
