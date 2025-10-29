@@ -1,60 +1,44 @@
 import crypto from "crypto";
-import { encrypt } from "./ccavutil.js";
+import ccav from "./ccavutil.js";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 export const ccavRequestHandler = (req, res) => {
-  try {
-    const workingKey = process.env.WORKING_KEY;
-    const accessCode = process.env.ACCESS_CODE;
-    const merchantId = process.env.MERCHANT_ID;
+  let body = "";
 
-    // Ensure amount is a string with 2 decimals
-    const amount = parseFloat(req.body.amount || 10).toFixed(2);
+  const workingKey = process.env.WORKING_KEY; // ✅ from .env
+  const accessCode = process.env.ACCESS_CODE;
 
-    // Prepare payload for CCAvenue
-    const paymentData = {
-      merchant_id: merchantId,
-      order_id: req.body.order_id || "ORD" + Date.now(),
-      currency: "INR",
-      amount: amount,
-      redirect_url: process.env.REDIRECT_URL,
-      cancel_url: process.env.CANCEL_URL,
-      language: "EN",
-      billing_name: req.body.billing_name || "Guest User",
-      billing_email: req.body.billing_email || "guest@example.com",
-    };
+  // MD5 + base64 encode key
+  const md5 = crypto.createHash("md5").update(workingKey).digest();
+  const keyBase64 = Buffer.from(md5).toString("base64");
 
-    // Convert to URL-encoded string
-    const body = new URLSearchParams(paymentData).toString();
+  // Static IV as per CCAvenue docs
+  const ivBase64 = Buffer.from([
+    0x00, 0x01, 0x02, 0x03,
+    0x04, 0x05, 0x06, 0x07,
+    0x08, 0x09, 0x0a, 0x0b,
+    0x0c, 0x0d, 0x0e, 0x0f,
+  ]).toString("base64");
 
-    console.log("✅ CCAvenue Payload:", body); // Debugging
+  req.on("data", (data) => {
+    body += data;
+  });
 
-    // AES-128-CBC encryption key & IV
-    const key = crypto.createHash("md5").update(workingKey).digest();
-    const iv = Buffer.from([...Array(16).keys()]);
+  req.on("end", () => {
+    const encRequest = ccav.encrypt(body, keyBase64, ivBase64);
 
-    // Encrypt the request
-    const encRequest = encrypt(body, key, iv);
-
-    // HTML form for auto-submission
-    const formBody = `
-<html>
-  <body>
-    <form method="post" name="redirect" action="https://secure.ccavenue.com/transaction/initTrans">
-      <input type="hidden" name="encRequest" value="${encRequest}">
-      <input type="hidden" name="access_code" value="${accessCode}">
-    </form>
-    <script>document.redirect.submit();</script>
-  </body>
-</html>
-`;
+    const html = `
+      <form id="nonseamless" method="post" name="redirect"
+        action="https://secure.ccavenue.com/transaction/transaction.do?command=initiateTransaction">
+        <input type="hidden" id="encRequest" name="encRequest" value="${encRequest}">
+        <input type="hidden" name="access_code" id="access_code" value="${accessCode}">
+        <script>document.redirect.submit();</script>
+      </form>
+    `;
 
     res.writeHead(200, { "Content-Type": "text/html" });
-    res.end(formBody);
-  } catch (err) {
-    console.error("❌ CCAvenue Request Handler Error:", err);
-    res.status(500).send("Error initiating payment. Please try again.");
-  }
+    res.end(html);
+  });
 };

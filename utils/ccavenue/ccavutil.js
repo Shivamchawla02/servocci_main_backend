@@ -1,17 +1,34 @@
-import crypto from "crypto";
+var crypto = require('crypto');
+function getAlgorithm(keyBase64) {
+    var key = Buffer.from(keyBase64, 'base64');
+    switch (key.length) {
+        case 16:
+            return 'aes-128-cbc';
+        case 32:
+            return 'aes-256-cbc';
 
-// AES-128-CBC encryption (Base64)
-export const encrypt = (plainText, key, iv) => {
-  const cipher = crypto.createCipheriv("aes-128-cbc", key, iv);
-  let encrypted = cipher.update(plainText, "utf8", "base64");
-  encrypted += cipher.final("base64");
-  return encrypted;
-};
+    }
+    throw new Error('Invalid key length: ' + key.length);
+}
 
-// AES-128-CBC decryption (Base64)
-export const decrypt = (encryptedText, key, iv) => {
-  const decipher = crypto.createDecipheriv("aes-128-cbc", key, iv);
-  let decrypted = decipher.update(encryptedText, "base64", "utf8");
-  decrypted += decipher.final("utf8");
-  return decrypted;
-};
+exports.encrypt = function(plainText, keyBase64, ivBase64) {
+
+    const key = Buffer.from(keyBase64, 'base64');
+    const iv = Buffer.from(ivBase64, 'base64');
+
+    const cipher = crypto.createCipheriv(getAlgorithm(keyBase64), key, iv);
+    let encrypted = cipher.update(plainText, 'utf8', 'hex')
+    encrypted += cipher.final('hex');
+    return encrypted;
+}
+
+exports.decrypt = function(messagebase64, keyBase64, ivBase64) {
+
+    const key = Buffer.from(keyBase64, 'base64');
+    const iv = Buffer.from(ivBase64, 'base64');
+
+    const decipher = crypto.createDecipheriv(getAlgorithm(keyBase64), key, iv);
+    let decrypted = decipher.update(messagebase64, 'hex');
+    decrypted += decipher.final();
+    return decrypted;
+}
