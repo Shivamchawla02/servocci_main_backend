@@ -13,6 +13,7 @@ import jobApplicationRoutes from "./routes/jobApplicationRoutes.js";
 import blogRoutes from "./routes/blogRoutes.js";
 import userTestRoutes from "./routes/userTestRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
+import subscribeRoutes from "./routes/subscribeRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -59,6 +60,8 @@ app.use("/api/job-applications", jobApplicationRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/user-tests", userTestRoutes);
 app.use("/api/payment", paymentRoutes); // ✅ CCAvenue route
+app.use("/api/subscribe", subscribeRoutes);
+
 
 // ✅ Default routes
 app.get("/", (req, res) => {
