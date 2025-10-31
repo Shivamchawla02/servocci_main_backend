@@ -60,7 +60,7 @@ app.use("/api/job-applications", jobApplicationRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/user-tests", userTestRoutes);
 app.use("/api/payment", paymentRoutes); // ✅ CCAvenue route
-app.use("/api/subscribe", subscribeRoutes);
+app.use("/api/subscription", subscribeRoutes);
 
 
 // ✅ Default routes
