@@ -3,38 +3,44 @@ import Subscription from "../models/Subscription.js";
 
 const router = express.Router();
 
-// ✅ Helper validation function
+// ✅ Helper validation
 const validateFields = (fields, body) => {
-  const missing = fields.filter((field) => !body[field] || body[field].trim() === "");
+  const missing = fields.filter(
+    (field) => !body[field] || String(body[field]).trim() === ""
+  );
   return missing;
 };
 
-// 🧑‍🎓 Student Subscription
+// ✅ Regex patterns
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const phoneRegex = /^[0-9]{10}$/;
+
+// 🧑‍🎓 STUDENT SUBSCRIPTION
 router.post("/student", async (req, res) => {
   try {
-    const requiredFields = ["full_name", "class_/_grade", "email_address", "phone_number"];
+    const requiredFields = ["full_name", "class_grade", "email_address", "phone_number"];
     const missing = validateFields(requiredFields, req.body);
 
     if (missing.length > 0) {
-      return res.status(400).json({ message: `Missing required fields: ${missing.join(", ")}` });
+      return res
+        .status(400)
+        .json({ message: `Missing required fields: ${missing.join(", ")}` });
     }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^[0-9]{10}$/;
 
     if (!emailRegex.test(req.body.email_address))
       return res.status(400).json({ message: "Invalid email format" });
+
     if (!phoneRegex.test(req.body.phone_number))
       return res.status(400).json({ message: "Phone number must be 10 digits" });
 
     const newSub = new Subscription({
       type: "student",
       name: req.body.full_name,
-      grade: req.body["class_/_grade"],
+      grade: req.body.class_grade,
       email: req.body.email_address,
       phone: req.body.phone_number,
-      school: req.body["school_name_(optional)"],
-      exam: req.body["entrance_exam_(if_any)"],
+      school: req.body.school_name_optional,
+      exam: req.body.entrance_exam_if_any,
       remarks: req.body.remarks,
     });
 
@@ -46,7 +52,7 @@ router.post("/student", async (req, res) => {
   }
 });
 
-// 🏫 Institution Subscription
+// 🏫 INSTITUTION SUBSCRIPTION
 router.post("/institution", async (req, res) => {
   try {
     const requiredFields = [
@@ -59,14 +65,14 @@ router.post("/institution", async (req, res) => {
     const missing = validateFields(requiredFields, req.body);
 
     if (missing.length > 0) {
-      return res.status(400).json({ message: `Missing required fields: ${missing.join(", ")}` });
+      return res
+        .status(400)
+        .json({ message: `Missing required fields: ${missing.join(", ")}` });
     }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^[0-9]{10}$/;
 
     if (!emailRegex.test(req.body.email_address))
       return res.status(400).json({ message: "Invalid email format" });
+
     if (!phoneRegex.test(req.body.phone_number))
       return res.status(400).json({ message: "Phone number must be 10 digits" });
 
@@ -88,12 +94,11 @@ router.post("/institution", async (req, res) => {
   }
 });
 
-
-// 🧩 Admin Routes
-// ✅ Get all subscriptions
+// 🧾 ADMIN ROUTES
+// ✅ Get all subscriptions (optional query ?type=student)
 router.get("/", async (req, res) => {
   try {
-    const { type } = req.query; // Optional ?type=student
+    const { type } = req.query;
     const filter = type ? { type } : {};
     const subs = await Subscription.find(filter).sort({ createdAt: -1 });
     res.status(200).json({ count: subs.length, data: subs });

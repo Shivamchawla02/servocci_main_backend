@@ -7,13 +7,7 @@ const subscriptionSchema = new mongoose.Schema(
       enum: ["student", "institution"],
       required: true,
     },
-
-    // Common fields
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
+    name: { type: String, required: true, trim: true },
     email: {
       type: String,
       trim: true,
@@ -25,33 +19,12 @@ const subscriptionSchema = new mongoose.Schema(
       trim: true,
       match: [/^\d{10}$/, "Phone number must be 10 digits"],
     },
-    address: {
-      type: String,
-      trim: true,
-    },
-    remarks: {
-      type: String,
-      trim: true,
-    },
-
-    // Student-specific
-    grade: {
-      type: String,
-    },
-    school: {
-      type: String,
-      trim: true,
-    },
-    exam: {
-      type: String,
-      trim: true,
-    },
-
-    // Institution-specific
-    contactPerson: {
-      type: String,
-      trim: true,
-    },
+    address: { type: String, trim: true },
+    remarks: { type: String, trim: true },
+    grade: { type: String },
+    school: { type: String, trim: true },
+    exam: { type: String, trim: true },
+    contactPerson: { type: String, trim: true },
   },
   { timestamps: true }
 );
