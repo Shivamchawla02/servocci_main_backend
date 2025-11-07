@@ -4,19 +4,20 @@ import {
   getAllUserTests,
   updateUserTestReport,
 } from "../controllers/userTestController.js";
+import UserTest from "../models/UserTest.js"; // ✅ ADD THIS LINE
 
 const router = express.Router();
 
 // ➕ Save user test details
-// ➕ Save user test details
-router.post("/", addUserTest);   // ✅ new shortcut
-router.post("/add", addUserTest); // existing
+router.post("/", addUserTest);
+router.post("/add", addUserTest);
 
 // 📋 Fetch all user test submissions
 router.get("/", getAllUserTests);
 
 // 📝 Update report URL (after Cloudinary upload)
 router.put("/:id", updateUserTestReport);
+
 // 🔍 Get user test by email
 router.get("/email/:email", async (req, res) => {
   try {
@@ -43,6 +44,5 @@ router.get("/email/:email", async (req, res) => {
     });
   }
 });
-
 
 export default router;
