@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 
-import authRoutes from "./routes/auth.js";
+import authRoutes from "./routes/authRoutes.js"; // ✅ keep only this one
 import freeCounsellingRoutes from "./routes/freeCounselling.js";
 import emailRoutes from "./routes/emailRoutes.js";
 import mbbsCollegeRoutes from "./routes/mbbsColleges.js";
@@ -14,20 +14,18 @@ import blogRoutes from "./routes/blogRoutes.js";
 import userTestRoutes from "./routes/userTestRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import subscribeRoutes from "./routes/subscribeRoutes.js";
-import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config();
 const app = express();
 
 // ✅ Allowed Frontend Origins
 const allowedOrigins = [
-  "http://localhost:5173",      // for local development
-  "https://servocci.com",       // main production site
-  "https://www.servocci.com",   // optional www version
-  "https://placements.servocci.com", // placements portal
-  "https://psychometric.servocci.com" // 👈 new psychometric subdomain
+  "http://localhost:5173",
+  "https://servocci.com",
+  "https://www.servocci.com",
+  "https://placements.servocci.com",
+  "https://psychometric.servocci.com",
 ];
-
 
 app.use(
   cors({
@@ -39,18 +37,16 @@ app.use(
         callback(new Error("Not allowed by CORS"));
       }
     },
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], // ✅ Added PUT + OPTIONS
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
   })
 );
 
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
 // ✅ Routes
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes); // ✅ only once
 app.use("/api/free-counselling", freeCounsellingRoutes);
 app.use("/api/counselling-requests", freeCounsellingRoutes);
 app.use("/api/contact", emailRoutes);
@@ -60,10 +56,8 @@ app.use("/api", adminRoutes);
 app.use("/api/job-applications", jobApplicationRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/user-tests", userTestRoutes);
-app.use("/api/payment", paymentRoutes); // ✅ CCAvenue route
+app.use("/api/payment", paymentRoutes);
 app.use("/api/subscription", subscribeRoutes);
-app.use("/api/auth", authRoutes);
-
 
 // ✅ Default routes
 app.get("/", (req, res) => {
@@ -78,10 +72,7 @@ app.get("/healthz", (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("✅ MongoDB connected");
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
