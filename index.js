@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 
-import authRoutes from "./routes/authRoutes.js"; // ✅ keep only this one
+import authRoutes from "./routes/authRoutes.js";
 import freeCounsellingRoutes from "./routes/freeCounselling.js";
 import emailRoutes from "./routes/emailRoutes.js";
 import mbbsCollegeRoutes from "./routes/mbbsColleges.js";
@@ -27,6 +27,7 @@ const allowedOrigins = [
   "https://psychometric.servocci.com",
 ];
 
+// ✅ Enable CORS — must be before any routes
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -42,11 +43,15 @@ app.use(
   })
 );
 
+// ✅ Handle preflight OPTIONS requests globally
+app.options("*", cors());
+
+// ✅ Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ✅ Routes
-app.use("/api/auth", authRoutes); // ✅ only once
+app.use("/api/auth", authRoutes);
 app.use("/api/free-counselling", freeCounsellingRoutes);
 app.use("/api/counselling-requests", freeCounsellingRoutes);
 app.use("/api/contact", emailRoutes);
