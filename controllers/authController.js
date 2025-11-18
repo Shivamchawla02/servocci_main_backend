@@ -1,88 +1,154 @@
-// controllers/authController.js
-import Student from "../models/Student.js";
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import Student from "../models/student.js";
+import sendEmail from "../utils/sendEmail.js"; // your Nodemailer function
 import crypto from "crypto";
-import nodemailer from "nodemailer";
 
-export const register = async (req, res) => {
+// Generate JWT
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+};
+
+// -----------------------------------------
+// REGISTER
+// -----------------------------------------
+export const registerStudent = async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
-    const existingUser = await Student.findOne({ email });
-    if (existingUser) return res.status(400).json({ msg: "Email already registered" });
 
-    const user = new Student({ name, email, phone, password });
-    await user.save();
+    const exists = await Student.findOne({ email });
+    if (exists) return res.status(400).json({ message: "Email already exists" });
 
-    res.status(201).json({ msg: "Registration successful", user });
-  } catch (error) {
-    res.status(500).json({ msg: error.message });
+    const student = await Student.create({ name, email, phone, password });
+
+    res.status(201).json({
+      success: true,
+      student,
+      token: generateToken(student._id),
+    });
+  } catch (err) {
+    console.error("Register Error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-export const login = async (req, res) => {
+// -----------------------------------------
+// LOGIN WITH PASSWORD
+// -----------------------------------------
+export const loginWithPassword = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await Student.findOne({ email });
-    if (!user) return res.status(400).json({ msg: "Invalid credentials" });
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
+    const student = await Student.findOne({ email });
+    if (!student) return res.status(404).json({ message: "User not found" });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-    res.json({ msg: "Login successful", token, user });
-  } catch (error) {
-    res.status(500).json({ msg: error.message });
+    const isMatch = await student.matchPassword(password);
+    if (!isMatch) return res.status(400).json({ message: "Invalid password" });
+
+    res.json({
+      success: true,
+      token: generateToken(student._id),
+      student,
+    });
+  } catch (err) {
+    console.error("Login Error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// ========== FORGOT PASSWORD ==========
+// -----------------------------------------
+// OTP LOGIN (after Firebase verifies phone)
+// -----------------------------------------
+export const loginWithOTP = async (req, res) => {
+  try {
+    const { phone } = req.body;
+
+    let user = await Student.findOne({ phone });
+
+    if (!user) {
+      // Auto-create account for OTP user
+      user = await Student.create({
+        name: "User",
+        email: `${phone}@servocci.com`,
+        phone,
+        password: crypto.randomBytes(8).toString("hex"),
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "OTP verified",
+      token: generateToken(user._id),
+      user,
+    });
+  } catch (err) {
+    console.error("OTP Login Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// -----------------------------------------
+// FIREBASE AUTH VERIFY
+// -----------------------------------------
+export const verifyFirebaseUser = async (req, res) => {
+  try {
+    const { firebaseUID, phone } = req.body;
+
+    let user = await Student.findOne({ phone });
+
+    if (!user) {
+      user = await Student.create({
+        name: "User",
+        email: `${phone}@servocci.com`,
+        phone,
+        firebaseUID,
+        password: crypto.randomBytes(8).toString("hex"),
+      });
+    } else {
+      user.firebaseUID = firebaseUID;
+      await user.save();
+    }
+
+    res.json({
+      success: true,
+      token: generateToken(user._id),
+      user,
+    });
+  } catch (err) {
+    console.error("Firebase Verify Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// -----------------------------------------
+// FORGOT PASSWORD
+// -----------------------------------------
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
+
     const user = await Student.findOne({ email });
-    if (!user) return res.status(400).json({ msg: "No account with this email" });
+    if (!user) return res.status(404).json({ message: "Email not found" });
 
     const resetToken = crypto.randomBytes(32).toString("hex");
-    const resetTokenExpire = Date.now() + 10 * 60 * 1000;
     user.resetToken = resetToken;
-    user.resetTokenExpire = resetTokenExpire;
+    user.resetTokenExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
     await user.save();
 
-    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-    // ✅ Nodemailer setup directly here
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    await sendEmail(email, "Password Reset", `Reset your password: ${resetUrl}`);
 
-    const html = `
-      <h2>Reset Your Password</h2>
-      <p>Click the button below to reset your password. This link will expire in 10 minutes.</p>
-      <a href="${resetUrl}" style="display:inline-block;padding:10px 20px;background:#001b48;color:#fff;text-decoration:none;border-radius:5px;">Reset Password</a>
-      <p>If you didn’t request this, please ignore this email.</p>
-    `;
-
-    await transporter.sendMail({
-      from: `"Servocci Counsellors" <${process.env.EMAIL_USER}>`,
-      to: user.email,
-      subject: "Password Reset Link - Servocci Counsellors",
-      html,
-    });
-
-    res.json({ msg: "Password reset link sent to email" });
-  } catch (error) {
-    res.status(500).json({ msg: error.message });
+    res.json({ success: true, message: "Email sent successfully" });
+  } catch (err) {
+    console.error("Forgot Password Error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// ========== RESET PASSWORD ==========
+// -----------------------------------------
+// RESET PASSWORD
+// -----------------------------------------
 export const resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
@@ -92,16 +158,30 @@ export const resetPassword = async (req, res) => {
       resetToken: token,
       resetTokenExpire: { $gt: Date.now() },
     });
-    if (!user) return res.status(400).json({ msg: "Invalid or expired token" });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    user.password = hashedPassword;
+    if (!user) return res.status(400).json({ message: "Invalid or expired token" });
+
+    user.password = password;
     user.resetToken = undefined;
     user.resetTokenExpire = undefined;
+
     await user.save();
 
-    res.json({ msg: "Password reset successful" });
-  } catch (error) {
-    res.status(500).json({ msg: error.message });
+    res.json({ success: true, message: "Password reset successful" });
+  } catch (err) {
+    console.error("Reset Password Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// -----------------------------------------
+// GET PROFILE
+// -----------------------------------------
+export const getProfile = async (req, res) => {
+  try {
+    const user = await Student.findById(req.user.id).select("-password");
+    res.json({ success: true, user });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
 };
