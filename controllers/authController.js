@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import Student from "../models/student.js";
+import Student from "../models/Student.js";
 import sendEmail from "../utils/sendEmail.js"; // your Nodemailer function
 import crypto from "crypto";
 
