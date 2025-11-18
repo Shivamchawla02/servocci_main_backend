@@ -2,7 +2,7 @@ import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import Student from "../models/student.js";
+import Student from "../models/Student.js";
 import Institution from "../models/Institution.js";
 import sendEmail from "../utils/sendEmail.js";
 
