@@ -55,26 +55,42 @@ export const registerStudent = async (req, res) => {
     if (existing)
       return res.status(400).json({ message: "Email already exists" });
 
-    // Create student (NO manual hashing — model pre-save will hash)
+    // Create student (model pre-save hook hashes password)
     const newStudent = new Student({
       name,
       email,
       phone,
-      password, // raw password → pre-save hook will hash
+      password,
     });
 
     await newStudent.save();
 
-    // 📧 Send welcome email
+    // 📧 User welcome email
     await sendEmail(
       email,
       "Welcome to Servocci!",
       `
         <p>Hello ${name},</p>
         <p>Your student account has been created successfully.</p>
-        <p>Login anytime and continue your admission journey.</p>
+        <p>You can now log in and continue your admission journey.</p>
         <br/>
         <p>Regards,<br/>Team Servocci</p>
+      `
+    );
+
+    // 📧 ADMIN ALERT EMAIL
+    await sendEmail(
+      "hello@servocci.com",
+      "New Student Registered",
+      `
+        <p><strong>A new student has registered.</strong></p>
+        
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Phone:</strong> ${phone}</p>
+
+        <br/>
+        <p>— Servocci System</p>
       `
     );
 
