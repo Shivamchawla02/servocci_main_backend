@@ -1,26 +1,21 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: true, // Google Workspace requires secure SSL
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendEmail = async (to, subject, html) => {
   try {
-    await transporter.sendMail({
-      from: `"Servocci" <${process.env.SMTP_USER}>`,
+    const response = await resend.emails.send({
+      from: "Servocci <noreply@servocci.com>",
       to,
       subject,
       html,
     });
+
     console.log("📩 Email sent to:", to);
+    return response;
   } catch (error) {
     console.error("❌ Email send failed:", error);
+    throw error;
   }
 };
 

@@ -1,5 +1,7 @@
 import FreeCounsellingRequest from "../models/FreeCounsellingRequest.js";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const createBooking = async (req, res) => {
   try {
@@ -21,19 +23,10 @@ export const createBooking = async (req, res) => {
     });
     await newBooking.save();
 
-    // Nodemailer setup
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,  // hello@servocci.com
-        pass: process.env.EMAIL_PASS   // app password
-      }
-    });
-
-    // 📩 Email to user
+    // Send user email (if email provided)
     if (email) {
-      await transporter.sendMail({
-        from: `"Servocci Counsellors" <${process.env.EMAIL_USER}>`,
+      await resend.emails.send({
+        from: "Servocci Counsellors <noreply@servocci.com>",
         to: email,
         subject: "Thank you for booking your free counselling session",
         html: `
@@ -50,10 +43,10 @@ export const createBooking = async (req, res) => {
       });
     }
 
-    // 📩 Email to admin (hello@servocci.com)
-    await transporter.sendMail({
-      from: `"Servocci Counsellors" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER,
+    // Send admin email
+    await resend.emails.send({
+      from: "Servocci Counsellors <noreply@servocci.com>",
+      to: "hello@servocci.com",
       subject: "New Free Counselling Booking",
       html: `
         <p>A new free counselling request has been submitted:</p>
@@ -72,17 +65,5 @@ export const createBooking = async (req, res) => {
   } catch (err) {
     console.error("FreeCounselling create error:", err);
     return res.status(500).json({ msg: "Server error" });
-  }
-};
-
-
-// ✅ NEW FUNCTION: Get all counselling requests (for admin dashboard)
-export const getAllBookings = async (req, res) => {
-  try {
-    const requests = await FreeCounsellingRequest.find().sort({ createdAt: -1 });
-    res.status(200).json(requests);
-  } catch (err) {
-    console.error("Error fetching counselling requests:", err);
-    res.status(500).json({ msg: "Server error" });
   }
 };

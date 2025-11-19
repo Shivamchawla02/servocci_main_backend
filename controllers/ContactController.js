@@ -1,7 +1,9 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import dotenv from "dotenv";
 
 dotenv.config();
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendContactEmail = async (req, res) => {
   const { name, email, subject, message } = req.body;
@@ -11,29 +13,31 @@ export const sendContactEmail = async (req, res) => {
   }
 
   try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail", // or "hotmail", "yahoo", etc.
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    const mailOptions = {
-      from: `"${name}" <${email}>`,
-      to: "hello@servocci.com",
+    await resend.emails.send({
+      from: `Servocci Website <noreply@servocci.com>`, 
+      to: "hello@servocci.com", // Admin receives the details
       subject: subject || "New Contact Message from Servocci Website",
       html: `
-        <h3>New Message from Contact Form</h3>
+        <h3>New Contact Form Message</h3>
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Subject:</strong> ${subject || "N/A"}</p>
-        <p><strong>Message:</strong></p>
-        <p>${message}</p>
+        <p><strong>Message:</strong><br>${message}</p>
       `,
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
+    // OPTIONAL: Send confirmation to user
+    await resend.emails.send({
+      from: "Servocci <noreply@servocci.com>",
+      to: email,
+      subject: "We received your message",
+      html: `
+        <p>Hello ${name},</p>
+        <p>Thank you for contacting us. Our team will get back to you shortly.</p>
+        <p>Regards,<br>Servocci Team</p>
+      `,
+    });
+
     res.status(200).json({ msg: "Message sent successfully." });
   } catch (error) {
     console.error("Email Error:", error);

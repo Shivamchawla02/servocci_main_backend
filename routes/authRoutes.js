@@ -9,6 +9,7 @@ import sendEmail from "../utils/sendEmail.js";
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
 
+// Generate JWT Token
 const generateToken = (payload) => {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: "1d" });
 };
@@ -21,14 +22,22 @@ router.post("/register-student", async (req, res) => {
 
   try {
     const existing = await Student.findOne({ email });
-    if (existing) return res.status(400).json({ msg: "Email already registered" });
+    if (existing) {
+      return res.status(400).json({ msg: "Email already registered" });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await Student.create({ name, email, phone, password: hashedPassword });
+
+    await Student.create({
+      name,
+      email,
+      phone,
+      password: hashedPassword,
+    });
 
     res.status(201).json({ msg: "Student registered successfully" });
   } catch (err) {
-    console.error(err);
+    console.error("Register Student Error:", err);
     res.status(500).json({ msg: "Server error" });
   }
 });
@@ -39,7 +48,9 @@ router.post("/register-student", async (req, res) => {
 router.post("/register-institution", async (req, res) => {
   try {
     const existing = await Institution.findOne({ email: req.body.email });
-    if (existing) return res.status(400).json({ msg: "Email already registered" });
+    if (existing) {
+      return res.status(400).json({ msg: "Email already registered" });
+    }
 
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
@@ -50,7 +61,7 @@ router.post("/register-institution", async (req, res) => {
 
     res.status(201).json({ msg: "Institution registered successfully" });
   } catch (err) {
-    console.error(err);
+    console.error("Register Institution Error:", err);
     res.status(500).json({ msg: "Server error" });
   }
 });
@@ -65,11 +76,11 @@ router.post("/login", async (req, res) => {
     let user = null;
     let role = null;
 
-    // 1️⃣ Check Institution first
+    // Check Institution
     user = await Institution.findOne({ email });
     if (user) role = "institution";
 
-    // 2️⃣ Check Student
+    // Check Student
     if (!user) {
       user = await Student.findOne({ email });
       if (user) role = user.isAdmin ? "admin" : "student";
@@ -77,11 +88,9 @@ router.post("/login", async (req, res) => {
 
     if (!user) return res.status(400).json({ msg: "Invalid credentials" });
 
-    // 3️⃣ Verify password
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(400).json({ msg: "Invalid credentials" });
 
-    // 4️⃣ Create Token
     const token = generateToken({
       id: user._id,
       email: user.email,
@@ -99,7 +108,7 @@ router.post("/login", async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
+    console.error("Login Error:", err);
     return res.status(500).json({ msg: "Server error" });
   }
 });
@@ -113,6 +122,7 @@ router.post("/otp-login", async (req, res) => {
   try {
     let user = await Student.findOne({ phone });
 
+    // Auto-create user on first OTP login
     if (!user) {
       user = await Student.create({
         name: "User",
@@ -122,17 +132,21 @@ router.post("/otp-login", async (req, res) => {
       });
     }
 
-    const token = generateToken({ id: user._id, phone: user.phone, role: "student" });
+    const token = generateToken({
+      id: user._id,
+      phone: user.phone,
+      role: "student",
+    });
 
     return res.json({ token, user });
   } catch (err) {
-    console.error(err);
+    console.error("OTP Login Error:", err);
     res.status(500).json({ msg: "Server error" });
   }
 });
 
 /* -----------------------------------
-   FORGOT PASSWORD
+   FORGOT PASSWORD (Resend Email)
 ----------------------------------- */
 router.post("/forgot-password", async (req, res) => {
   try {
@@ -148,11 +162,21 @@ router.post("/forgot-password", async (req, res) => {
     await user.save();
 
     const link = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-    await sendEmail(user.email, "Reset Password", `Reset link: ${link}`);
 
-    res.json({ msg: "Reset link sent" });
+    await sendEmail(
+      user.email,
+      "Reset Password - Servocci",
+      `
+        <h2>Password Reset Request</h2>
+        <p>Click the link below to reset your password:</p>
+        <a href="${link}" target="_blank" style="color:#4f46e5">${link}</a>
+        <p>This link is valid for 10 minutes.</p>
+      `
+    );
+
+    return res.json({ msg: "Reset link sent to your email." });
   } catch (err) {
-    console.error(err);
+    console.error("Forgot Password Error:", err);
     res.status(500).json({ msg: "Server error" });
   }
 });
@@ -172,15 +196,19 @@ router.post("/reset-password/:token", async (req, res) => {
         resetTokenExpire: { $gt: Date.now() },
       }));
 
-    if (!user) return res.status(400).json({ msg: "Invalid or expired token" });
+    if (!user) {
+      return res.status(400).json({ msg: "Invalid or expired token" });
+    }
 
     user.password = await bcrypt.hash(req.body.password, 10);
     user.resetToken = undefined;
     user.resetTokenExpire = undefined;
+
     await user.save();
 
     res.json({ msg: "Password reset successful" });
   } catch (err) {
+    console.error("Reset Password Error:", err);
     res.status(500).json({ msg: "Server error" });
   }
 });
