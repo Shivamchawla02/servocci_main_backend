@@ -14,7 +14,7 @@ export const sendContactEmail = async (req, res) => {
 
   try {
     await resend.emails.send({
-      from: `Servocci Website <noreply@servocci.com>`, 
+      from: `Servocci Website <shivam@servocci.com>`, 
       to: "hello@servocci.com", // Admin receives the details
       subject: subject || "New Contact Message from Servocci Website",
       html: `
@@ -28,7 +28,7 @@ export const sendContactEmail = async (req, res) => {
 
     // OPTIONAL: Send confirmation to user
     await resend.emails.send({
-      from: "Servocci <noreply@servocci.com>",
+      from: "Servocci <shivam@servocci.com>",
       to: email,
       subject: "We received your message",
       html: `
