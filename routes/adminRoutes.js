@@ -4,10 +4,10 @@ import Student from "../models/Student.js";
 
 const router = express.Router();
 
-// ✅ Get all students
+// Get all students
 router.get("/users", async (req, res) => {
   try {
-    const students = await Student.find().select("-password"); // hide password
+    const students = await Student.find().select("-password");
     res.json(students);
   } catch (err) {
     console.error("Error fetching students:", err);
@@ -15,10 +15,10 @@ router.get("/users", async (req, res) => {
   }
 });
 
-// ✅ Get all institutions
+// Get all institutions
 router.get("/institutions", async (req, res) => {
   try {
-    const institutions = await Institution.find().select("-password"); // hide password
+    const institutions = await Institution.find().select("-password");
     res.json(institutions);
   } catch (err) {
     console.error("Error fetching institutions:", err);

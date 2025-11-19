@@ -57,7 +57,7 @@ app.use("/api/counselling-requests", freeCounsellingRoutes);
 app.use("/api/contact", emailRoutes);
 app.use("/api/mbbs-colleges", mbbsCollegeRoutes);
 app.use("/api/resumes", resumeRoutes);
-app.use("/api", adminRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/job-applications", jobApplicationRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/user-tests", userTestRoutes);
