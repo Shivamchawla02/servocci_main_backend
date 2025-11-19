@@ -28,14 +28,14 @@ router.post("/register-student", async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await Student.create({
+    const student = await Student.create({
       name,
       email,
       phone,
       password: hashedPassword,
     });
 
-    res.status(201).json({ msg: "Student registered successfully" });
+    res.status(201).json({ msg: "Student registered successfully", student });
   } catch (err) {
     console.error("Register Student Error:", err);
     res.status(500).json({ msg: "Server error" });
@@ -46,20 +46,22 @@ router.post("/register-student", async (req, res) => {
    INSTITUTION REGISTER
 ----------------------------------- */
 router.post("/register-institution", async (req, res) => {
+  const { email, password } = req.body;
+
   try {
-    const existing = await Institution.findOne({ email: req.body.email });
+    const existing = await Institution.findOne({ email });
     if (existing) {
       return res.status(400).json({ msg: "Email already registered" });
     }
 
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    await Institution.create({
+    const institution = await Institution.create({
       ...req.body,
       password: hashedPassword,
     });
 
-    res.status(201).json({ msg: "Institution registered successfully" });
+    res.status(201).json({ msg: "Institution registered successfully", institution });
   } catch (err) {
     console.error("Register Institution Error:", err);
     res.status(500).json({ msg: "Server error" });
@@ -73,17 +75,12 @@ router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    let user = null;
-    let role = null;
+    let user = await Institution.findOne({ email });
+    let role = user ? "institution" : null;
 
-    // Check Institution
-    user = await Institution.findOne({ email });
-    if (user) role = "institution";
-
-    // Check Student
     if (!user) {
       user = await Student.findOne({ email });
-      if (user) role = user.isAdmin ? "admin" : "student";
+      role = user ? (user.isAdmin ? "admin" : "student") : null;
     }
 
     if (!user) return res.status(400).json({ msg: "Invalid credentials" });
@@ -91,13 +88,9 @@ router.post("/login", async (req, res) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(400).json({ msg: "Invalid credentials" });
 
-    const token = generateToken({
-      id: user._id,
-      email: user.email,
-      role,
-    });
+    const token = generateToken({ id: user._id, email: user.email, role });
 
-    return res.json({
+    res.json({
       token,
       user: {
         id: user._id,
@@ -109,7 +102,7 @@ router.post("/login", async (req, res) => {
     });
   } catch (err) {
     console.error("Login Error:", err);
-    return res.status(500).json({ msg: "Server error" });
+    res.status(500).json({ msg: "Server error" });
   }
 });
 
@@ -122,7 +115,6 @@ router.post("/otp-login", async (req, res) => {
   try {
     let user = await Student.findOne({ phone });
 
-    // Auto-create user on first OTP login
     if (!user) {
       user = await Student.create({
         name: "User",
@@ -132,13 +124,9 @@ router.post("/otp-login", async (req, res) => {
       });
     }
 
-    const token = generateToken({
-      id: user._id,
-      phone: user.phone,
-      role: "student",
-    });
+    const token = generateToken({ id: user._id, phone: user.phone, role: "student" });
 
-    return res.json({ token, user });
+    res.json({ token, user });
   } catch (err) {
     console.error("OTP Login Error:", err);
     res.status(500).json({ msg: "Server error" });
@@ -146,19 +134,18 @@ router.post("/otp-login", async (req, res) => {
 });
 
 /* -----------------------------------
-   FORGOT PASSWORD (Resend Email)
+   FORGOT PASSWORD
 ----------------------------------- */
 router.post("/forgot-password", async (req, res) => {
-  try {
-    const user =
-      (await Student.findOne({ email: req.body.email })) ||
-      (await Institution.findOne({ email: req.body.email }));
+  const { email } = req.body;
 
+  try {
+    const user = (await Student.findOne({ email })) || (await Institution.findOne({ email }));
     if (!user) return res.status(404).json({ msg: "Email not found" });
 
     const resetToken = crypto.randomBytes(32).toString("hex");
     user.resetToken = resetToken;
-    user.resetTokenExpire = Date.now() + 10 * 60 * 1000;
+    user.resetTokenExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
     await user.save();
 
     const link = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
@@ -174,7 +161,7 @@ router.post("/forgot-password", async (req, res) => {
       `
     );
 
-    return res.json({ msg: "Reset link sent to your email." });
+    res.json({ msg: "Reset link sent to your email." });
   } catch (err) {
     console.error("Forgot Password Error:", err);
     res.status(500).json({ msg: "Server error" });
@@ -185,22 +172,17 @@ router.post("/forgot-password", async (req, res) => {
    RESET PASSWORD
 ----------------------------------- */
 router.post("/reset-password/:token", async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
   try {
     const user =
-      (await Student.findOne({
-        resetToken: req.params.token,
-        resetTokenExpire: { $gt: Date.now() },
-      })) ||
-      (await Institution.findOne({
-        resetToken: req.params.token,
-        resetTokenExpire: { $gt: Date.now() },
-      }));
+      (await Student.findOne({ resetToken: token, resetTokenExpire: { $gt: Date.now() } })) ||
+      (await Institution.findOne({ resetToken: token, resetTokenExpire: { $gt: Date.now() } }));
 
-    if (!user) {
-      return res.status(400).json({ msg: "Invalid or expired token" });
-    }
+    if (!user) return res.status(400).json({ msg: "Invalid or expired token" });
 
-    user.password = await bcrypt.hash(req.body.password, 10);
+    user.password = await bcrypt.hash(password, 10);
     user.resetToken = undefined;
     user.resetTokenExpire = undefined;
 
