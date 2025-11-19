@@ -1,7 +1,7 @@
 import Student from "../models/Student.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import sendEmail from "../utils/sendEmail.js"; // Resend email helper
+import sendEmail from "../utils/sendEmail.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -55,22 +55,17 @@ export const registerStudent = async (req, res) => {
     if (existing)
       return res.status(400).json({ message: "Email already exists" });
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create student
+    // Create student (NO manual hashing — model pre-save will hash)
     const newStudent = new Student({
       name,
       email,
       phone,
-      password: hashedPassword,
+      password, // raw password → pre-save hook will hash
     });
 
     await newStudent.save();
 
-    // -----------------------------
-    // 📧 Send Welcome Email (Resend)
-    // -----------------------------
+    // 📧 Send welcome email
     await sendEmail(
       email,
       "Welcome to Servocci!",
