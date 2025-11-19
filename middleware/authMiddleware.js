@@ -1,6 +1,6 @@
 // src/middleware/authMiddleware.js
 import jwt from "jsonwebtoken";
-import { getStudentById } from "../controllers/authController.js"; // or your user model
+import Student from "../models/Student.js"; // Import your Mongoose model
 
 const authMiddleware = async (req, res, next) => {
   try {
@@ -14,15 +14,16 @@ const authMiddleware = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Assuming getStudentById returns user data by ID
-    const user = await getStudentById(decoded.id);
-    if (!user) {
+    // Fetch the student from the database
+    const student = await Student.findById(decoded.id).select("-password");
+    if (!student) {
       return res.status(401).json({ message: "Unauthorized: User not found" });
     }
 
-    req.user = user; // attach user info to request
+    req.user = student; // attach user info to request
     next();
   } catch (error) {
+    console.error("Auth Middleware Error:", error.message);
     return res.status(401).json({ message: "Unauthorized: Invalid token" });
   }
 };
