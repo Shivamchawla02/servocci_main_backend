@@ -21,49 +21,78 @@ export const createBooking = async (req, res) => {
       message,
       course
     });
+
     await newBooking.save();
 
-    // Send user email (if email provided)
+    // ---------------------------------------
+    // 📩 EMAIL TO USER (only if they provided email)
+    // ---------------------------------------
     if (email) {
       await resend.emails.send({
-        from: "Servocci Counsellors <noreply@servocci.com>",
+        from: "Servocci <noreply@servocci.com>",
         to: email,
         subject: "Thank you for booking your free counselling session",
         html: `
           <p>Hi ${name},</p>
-          <p>Thank you for booking a free career counselling session with us. Our team will contact you soon.</p>
-          <p><strong>Details:</strong><br/>
+          <p>Thank you for booking a free career counselling session with us. Our team will contact you shortly.</p>
+          <p><strong>Your Details:</strong><br/>
           Phone: ${phone}<br/>
           Preferred Date: ${preferredDate}<br/>
           Preferred Time: ${preferredTime}<br/>
-          Course: ${course || 'N/A'}<br/>
-          Message: ${message || 'N/A'}</p>
+          Course: ${course || "N/A"}<br/>
+          Message: ${message || "N/A"}
+          </p>
           <p>Best regards,<br/>Servocci Counsellors</p>
-        `
+        `,
       });
     }
 
-    // Send admin email
+    // ---------------------------------------
+    // 📩 EMAIL TO ADMIN (hello@servocci.com)
+    // ---------------------------------------
     await resend.emails.send({
-      from: "Servocci Counsellors <noreply@servocci.com>",
+      from: "Servocci <noreply@servocci.com>",
       to: "hello@servocci.com",
       subject: "New Free Counselling Booking",
       html: `
-        <p>A new free counselling request has been submitted:</p>
-        <p><strong>Name:</strong> ${name}<br/>
-        <strong>Phone:</strong> ${phone}<br/>
-        <strong>Email:</strong> ${email || 'N/A'}<br/>
-        <strong>Preferred Date:</strong> ${preferredDate}<br/>
-        <strong>Preferred Time:</strong> ${preferredTime}<br/>
-        <strong>Course:</strong> ${course || 'N/A'}<br/>
-        <strong>Message:</strong> ${message || 'N/A'}</p>
-      `
+        <p><strong>New Free Counselling Request Received:</strong></p>
+        <p>
+          <strong>Name:</strong> ${name}<br/>
+          <strong>Phone:</strong> ${phone}<br/>
+          <strong>Email:</strong> ${email || "N/A"}<br/>
+          <strong>Preferred Date:</strong> ${preferredDate}<br/>
+          <strong>Preferred Time:</strong> ${preferredTime}<br/>
+          <strong>Course:</strong> ${course || "N/A"}<br/>
+          <strong>Message:</strong> ${message || "N/A"}
+        </p>
+      `,
     });
 
-    return res.status(201).json({ msg: "Your free counselling request has been submitted successfully." });
+    return res.status(201).json({
+      msg: "Your free counselling request has been submitted successfully.",
+    });
 
   } catch (err) {
     console.error("FreeCounselling create error:", err);
-    return res.status(500).json({ msg: "Server error" });
+    return res.status(500).json({ msg: "Server error while sending request" });
+  }
+};
+
+
+
+// ---------------------------------------
+// ✅ GET ALL BOOKINGS (Admin Panel)
+// ---------------------------------------
+export const getAllBookings = async (req, res) => {
+  try {
+    const requests = await FreeCounsellingRequest
+      .find()
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(requests);
+
+  } catch (err) {
+    console.error("Error fetching counselling requests:", err);
+    res.status(500).json({ msg: "Server error" });
   }
 };
