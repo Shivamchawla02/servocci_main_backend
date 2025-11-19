@@ -107,33 +107,6 @@ router.post("/login", async (req, res) => {
 });
 
 /* -----------------------------------
-   OTP LOGIN (Firebase Verified Phone)
------------------------------------ */
-router.post("/otp-login", async (req, res) => {
-  const { phone } = req.body;
-
-  try {
-    let user = await Student.findOne({ phone });
-
-    if (!user) {
-      user = await Student.create({
-        name: "User",
-        phone,
-        email: `${phone}@servocci.com`,
-        password: crypto.randomBytes(10).toString("hex"),
-      });
-    }
-
-    const token = generateToken({ id: user._id, phone: user.phone, role: "student" });
-
-    res.json({ token, user });
-  } catch (err) {
-    console.error("OTP Login Error:", err);
-    res.status(500).json({ msg: "Server error" });
-  }
-});
-
-/* -----------------------------------
    FORGOT PASSWORD
 ----------------------------------- */
 router.post("/forgot-password", async (req, res) => {
