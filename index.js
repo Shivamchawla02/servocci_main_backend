@@ -14,11 +14,12 @@ import blogRoutes from "./routes/blogRoutes.js";
 import userTestRoutes from "./routes/userTestRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import subscribeRoutes from "./routes/subscribeRoutes.js";
+import studentRoutes from "./routes/studentRoutes.js";   // ✅ Add this
 
 dotenv.config();
 const app = express();
 
-// ✅ Allowed Frontend Origins
+// CORS
 const allowedOrigins = [
   "http://localhost:5173",
   "https://servocci.com",
@@ -27,7 +28,6 @@ const allowedOrigins = [
   "https://psychometric.servocci.com",
 ];
 
-// ✅ Enable CORS — must be before any routes
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -43,14 +43,13 @@ app.use(
   })
 );
 
-// ✅ Handle preflight OPTIONS requests globally
 app.options("*", cors());
 
-// ✅ Middleware
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Routes
+// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/free-counselling", freeCounsellingRoutes);
 app.use("/api/counselling-requests", freeCounsellingRoutes);
@@ -63,8 +62,9 @@ app.use("/api/blogs", blogRoutes);
 app.use("/api/user-tests", userTestRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/subscription", subscribeRoutes);
+app.use("/api/students", studentRoutes);   // ✅ Student Login + Register
 
-// ✅ Default routes
+// Default
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
@@ -73,7 +73,7 @@ app.get("/healthz", (req, res) => {
   res.status(200).json({ status: "ok", message: "Server is healthy" });
 });
 
-// ✅ Start Server
+// Server
 const PORT = process.env.PORT || 5000;
 
 mongoose

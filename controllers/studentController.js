@@ -1,45 +1,64 @@
-import Student from '../models/Student.js';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import Student from "../models/Student.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import sendEmail from "../utils/sendEmail.js"; // Resend email helper
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_here';
+const JWT_SECRET = process.env.JWT_SECRET;
 
+// =========================
+// LOGIN STUDENT
+// =========================
 export const loginStudent = async (req, res) => {
   const { email, password } = req.body;
 
   try {
     const student = await Student.findOne({ email });
-    if (!student) return res.status(400).json({ message: "Invalid email or password" });
+    if (!student)
+      return res.status(400).json({ message: "Invalid email or password" });
 
     const isMatch = await bcrypt.compare(password, student.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid email or password" });
 
-    const token = jwt.sign({ id: student._id, email: student.email }, JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign(
+      { id: student._id, email: student.email },
+      JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
-    res.json({
+    return res.json({
       token,
       user: {
         id: student._id,
         name: student.name,
         email: student.email,
         phone: student.phone,
-        isAdmin: student.isAdmin
+        isAdmin: student.isAdmin,
       },
     });
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: err.message });
   }
 };
 
+// =========================
+// REGISTER STUDENT
+// =========================
 export const registerStudent = async (req, res) => {
   const { name, email, phone, password } = req.body;
 
   try {
+    // Check if email exists
     const existing = await Student.findOne({ email });
-    if (existing) return res.status(400).json({ message: "Email already exists" });
+    if (existing)
+      return res.status(400).json({ message: "Email already exists" });
 
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Create student
     const newStudent = new Student({
       name,
       email,
@@ -48,8 +67,28 @@ export const registerStudent = async (req, res) => {
     });
 
     await newStudent.save();
-    res.status(201).json({ message: "Student registered successfully" });
+
+    // -----------------------------
+    // 📧 Send Welcome Email (Resend)
+    // -----------------------------
+    await sendEmail(
+      email,
+      "Welcome to Servocci!",
+      `
+        <p>Hello ${name},</p>
+        <p>Your student account has been created successfully.</p>
+        <p>Login anytime and continue your admission journey.</p>
+        <br/>
+        <p>Regards,<br/>Team Servocci</p>
+      `
+    );
+
+    return res
+      .status(201)
+      .json({ message: "Student registered successfully" });
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: err.message });
   }
 };

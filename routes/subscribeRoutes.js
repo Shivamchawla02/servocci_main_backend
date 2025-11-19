@@ -1,9 +1,11 @@
+// routes/subscribeRoutes.js
 import express from "express";
 import Subscription from "../models/Subscription.js";
+import sendEmail from "../utils/sendEmail.js";
 
 const router = express.Router();
 
-// ✅ Helper validation
+// Helper validation
 const validateFields = (fields, body) => {
   const missing = fields.filter(
     (field) => !body[field] || String(body[field]).trim() === ""
@@ -11,40 +13,33 @@ const validateFields = (fields, body) => {
   return missing;
 };
 
-// ✅ Regex patterns
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const phoneRegex = /^[0-9]{10}$/;
-
-// 🧑‍🎓 STUDENT SUBSCRIPTION
+// POST /api/subscription/student
 router.post("/student", async (req, res) => {
   try {
     const requiredFields = ["full_name", "class_grade", "email_address", "phone_number"];
     const missing = validateFields(requiredFields, req.body);
 
     if (missing.length > 0) {
-      return res
-        .status(400)
-        .json({ message: `Missing required fields: ${missing.join(", ")}` });
+      return res.status(400).json({ message: `Missing required fields: ${missing.join(", ")}` });
     }
 
-    if (!emailRegex.test(req.body.email_address))
-      return res.status(400).json({ message: "Invalid email format" });
-
-    if (!phoneRegex.test(req.body.phone_number))
-      return res.status(400).json({ message: "Phone number must be 10 digits" });
-
+    // normalize
     const newSub = new Subscription({
       type: "student",
-      name: req.body.full_name,
+      name: req.body.full_name.trim(),
       grade: req.body.class_grade,
-      email: req.body.email_address,
-      phone: req.body.phone_number,
-      school: req.body.school_name_optional,
-      exam: req.body.entrance_exam_if_any,
-      remarks: req.body.remarks,
+      email: req.body.email_address.trim().toLowerCase(),
+      phone: req.body.phone_number.trim(),
+      school: req.body.school_name_optional || "",
+      exam: req.body.entrance_exam_if_any || "",
+      remarks: req.body.remarks || ""
     });
 
     await newSub.save();
+
+    // Optional: send confirmation email to student (uncomment if you want)
+    // await sendEmail(newSub.email, "Subscription Confirmed", `<p>Thanks ${newSub.name}...</p>`);
+
     res.status(201).json({ message: "🎓 Student subscribed successfully!" });
   } catch (error) {
     console.error("Error saving student subscription:", error);
@@ -52,7 +47,7 @@ router.post("/student", async (req, res) => {
   }
 });
 
-// 🏫 INSTITUTION SUBSCRIPTION
+// POST /api/subscription/institution
 router.post("/institution", async (req, res) => {
   try {
     const requiredFields = [
@@ -65,28 +60,24 @@ router.post("/institution", async (req, res) => {
     const missing = validateFields(requiredFields, req.body);
 
     if (missing.length > 0) {
-      return res
-        .status(400)
-        .json({ message: `Missing required fields: ${missing.join(", ")}` });
+      return res.status(400).json({ message: `Missing required fields: ${missing.join(", ")}` });
     }
-
-    if (!emailRegex.test(req.body.email_address))
-      return res.status(400).json({ message: "Invalid email format" });
-
-    if (!phoneRegex.test(req.body.phone_number))
-      return res.status(400).json({ message: "Phone number must be 10 digits" });
 
     const newSub = new Subscription({
       type: "institution",
-      name: req.body.institution_name,
-      contactPerson: req.body.contact_person_name,
-      email: req.body.email_address,
-      phone: req.body.phone_number,
-      address: req.body.address,
-      remarks: req.body.remarks,
+      name: req.body.institution_name.trim(),
+      contactPerson: req.body.contact_person_name.trim(),
+      email: req.body.email_address.trim().toLowerCase(),
+      phone: req.body.phone_number.trim(),
+      address: req.body.address || "",
+      remarks: req.body.remarks || ""
     });
 
     await newSub.save();
+
+    // Optional admin notification
+    // await sendEmail("hello@servocci.com", "New Institution Subscription", `<p>New sub: ${newSub.name}</p>`);
+
     res.status(201).json({ message: "🏫 Institution subscribed successfully!" });
   } catch (error) {
     console.error("Error saving institution subscription:", error);
@@ -94,8 +85,7 @@ router.post("/institution", async (req, res) => {
   }
 });
 
-// 🧾 ADMIN ROUTES
-// ✅ Get all subscriptions (optional query ?type=student)
+// ADMIN: GET all subscriptions (optionally filter ?type=student)
 router.get("/", async (req, res) => {
   try {
     const { type } = req.query;
@@ -108,12 +98,11 @@ router.get("/", async (req, res) => {
   }
 });
 
-// ✅ Delete subscription by ID
+// ADMIN: delete
 router.delete("/:id", async (req, res) => {
   try {
     const deleted = await Subscription.findByIdAndDelete(req.params.id);
-    if (!deleted)
-      return res.status(404).json({ message: "Subscription not found" });
+    if (!deleted) return res.status(404).json({ message: "Subscription not found" });
     res.status(200).json({ message: "Subscription deleted successfully" });
   } catch (error) {
     console.error("Error deleting subscription:", error);
