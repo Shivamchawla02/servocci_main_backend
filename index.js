@@ -5,7 +5,6 @@ import dotenv from "dotenv";
 
 import authRoutes from "./routes/authRoutes.js";
 import freeCounsellingRoutes from "./routes/freeCounselling.js";
-import emailRoutes from "./routes/emailRoutes.js";
 import mbbsCollegeRoutes from "./routes/mbbsColleges.js";
 import resumeRoutes from "./routes/resumeRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
