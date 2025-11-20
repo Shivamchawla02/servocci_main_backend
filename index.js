@@ -14,6 +14,7 @@ import blogRoutes from "./routes/blogRoutes.js";
 import userTestRoutes from "./routes/userTestRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import subscribeRoutes from "./routes/subscribeRoutes.js";
+import contactRoutes from "./routes/contactRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -54,7 +55,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/free-counselling", freeCounsellingRoutes);
 app.use("/api/counselling-requests", freeCounsellingRoutes);
-app.use("/api/contact", emailRoutes);
+app.use("/api/contact", contactRoutes);
 app.use("/api/mbbs-colleges", mbbsCollegeRoutes);
 app.use("/api/resumes", resumeRoutes);
 app.use("/api/admin", adminRoutes);
