@@ -18,7 +18,7 @@ import subscribeRoutes from "./routes/subscribeRoutes.js";
 dotenv.config();
 const app = express();
 
-// CORS
+// ===== CORS SETUP =====
 const allowedOrigins = [
   "http://localhost:5173",
   "https://servocci.com",
@@ -30,25 +30,27 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.warn(`❌ CORS blocked for origin: ${origin}`);
-        callback(new Error("Not allowed by CORS"));
-      }
+      // Allow requests with no origin (e.g., mobile apps, Postman)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      console.warn(`❌ CORS blocked for origin: ${origin}`);
+      return callback(new Error("Not allowed by CORS"));
     },
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    optionsSuccessStatus: 200, // important for preflight
   })
 );
 
+// Explicitly handle preflight requests
 app.options("*", cors());
 
-// Middleware
+// ===== MIDDLEWARE =====
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// ===== ROUTES =====
 app.use("/api/auth", authRoutes);
 app.use("/api/free-counselling", freeCounsellingRoutes);
 app.use("/api/counselling-requests", freeCounsellingRoutes);
@@ -60,9 +62,9 @@ app.use("/api/job-applications", jobApplicationRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/user-tests", userTestRoutes);
 app.use("/api/payment", paymentRoutes);
-app.use("/api/subscription", subscribeRoutes);  // ✅ Student Login + Register
+app.use("/api/subscription", subscribeRoutes);
 
-// Default
+// ===== DEFAULT / HEALTH CHECK =====
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
@@ -71,7 +73,7 @@ app.get("/healthz", (req, res) => {
   res.status(200).json({ status: "ok", message: "Server is healthy" });
 });
 
-// Server
+// ===== CONNECT TO MONGODB & START SERVER =====
 const PORT = process.env.PORT || 5000;
 
 mongoose
