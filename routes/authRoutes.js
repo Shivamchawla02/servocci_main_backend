@@ -4,13 +4,15 @@ import {
   loginStudent,
   forgotPassword,
   resetPassword,
-  getProfile
+  getProfile,
 } from "../controllers/authController.js";
 
 import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
+// Add this temporarily
+console.log("AuthRoutes Loaded!"); 
 router.post("/register", registerStudent);
 router.post("/login", loginStudent);
 router.post("/forgot-password", forgotPassword);

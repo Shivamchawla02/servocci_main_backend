@@ -3,23 +3,25 @@ import Student from "../models/Student.js";
 
 const authMiddleware = async (req, res, next) => {
   try {
-    const header = req.headers.authorization;
+    const authHeader = req.headers.authorization;
 
-    if (!header || !header.startsWith("Bearer"))
-      return res.status(401).json({ message: "No token provided" });
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Unauthorized: No token provided" });
+    }
 
-    const token = header.split(" ")[1];
-
+    const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     const student = await Student.findById(decoded.id).select("-password");
-    if (!student)
-      return res.status(401).json({ message: "User not found" });
+    if (!student) {
+      return res.status(401).json({ message: "Unauthorized: User not found" });
+    }
 
     req.user = student;
     next();
-  } catch (err) {
-    res.status(401).json({ message: "Invalid token" });
+  } catch (error) {
+    console.error("Auth Error:", error.message);
+    return res.status(401).json({ message: "Unauthorized: Invalid token" });
   }
 };
 
