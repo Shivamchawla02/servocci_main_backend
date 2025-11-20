@@ -10,15 +10,13 @@ const generateToken = (id) => {
   return jwt.sign({ id }, JWT_SECRET, { expiresIn: "7d" });
 };
 
-/* ======================================================
-   REGISTER STUDENT
-====================================================== */
+/* REGISTER */
 export const registerStudent = async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
 
     if (!name || !email || !phone || !password)
-      return res.status(400).json({ success: false, message: "All fields are required" });
+      return res.status(400).json({ success: false, message: "All fields required" });
 
     const existingEmail = await Student.findOne({ email });
     if (existingEmail)
@@ -52,9 +50,7 @@ export const registerStudent = async (req, res) => {
   }
 };
 
-/* ======================================================
-   LOGIN STUDENT
-====================================================== */
+/* LOGIN */
 export const loginStudent = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -83,9 +79,7 @@ export const loginStudent = async (req, res) => {
   }
 };
 
-/* ======================================================
-   FORGOT PASSWORD
-====================================================== */
+/* FORGOT PASSWORD */
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -95,6 +89,7 @@ export const forgotPassword = async (req, res) => {
       return res.status(404).json({ success: false, message: "Email not found" });
 
     const resetToken = crypto.randomBytes(32).toString("hex");
+
     student.resetToken = resetToken;
     student.resetTokenExpire = Date.now() + 10 * 60 * 1000;
     await student.save();
@@ -104,7 +99,7 @@ export const forgotPassword = async (req, res) => {
     await sendEmail(
       email,
       "Reset Your Password",
-      `<p>Click here to reset your password: <a href="${resetUrl}">${resetUrl}</a></p>`
+      `<p>Click here to reset: <a href="${resetUrl}">${resetUrl}</a></p>`
     );
 
     res.json({ success: true, message: "Reset link sent to email" });
@@ -114,9 +109,7 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-/* ======================================================
-   RESET PASSWORD
-====================================================== */
+/* RESET PASSWORD */
 export const resetPassword = async (req, res) => {
   try {
     const student = await Student.findOne({
@@ -139,9 +132,7 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-/* ======================================================
-   GET PROFILE
-====================================================== */
+/* GET PROFILE */
 export const getProfile = async (req, res) => {
   try {
     const student = await Student.findById(req.user.id).select("-password");

@@ -14,7 +14,7 @@ const studentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Hash password before saving
+// Hash password
 studentSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   const salt = await bcrypt.genSalt(10);
@@ -23,9 +23,8 @@ studentSchema.pre("save", async function (next) {
 });
 
 // Compare password
-studentSchema.methods.matchPassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+studentSchema.methods.matchPassword = function (enteredPassword) {
+  return bcrypt.compare(enteredPassword, this.password);
 };
 
-const Student = mongoose.model("Student", studentSchema);
-export default Student;
+export default mongoose.model("Student", studentSchema);
