@@ -40,26 +40,39 @@ router.post("/student", async (req, res) => {
     await newSub.save();
 
     // ================================
-    // 1️⃣ Email to STUDENT (Confirmation)
-    // ================================
-    await sendEmail(
-      newSub.email,
-      "Subscription Successful – Servocci Career Guidance",
-      `
-      <div style="font-family: Arial; line-height: 1.6;">
-        <h2>🎉 Thank you for subscribing, ${newSub.name}!</h2>
-        <p>You are now subscribed to Servocci career updates.</p>
-        <p>We will send you:</p>
-        <ul>
-          <li>Career guidance resources</li>
-          <li>Exam & admission updates</li>
-          <li>Important opportunities based on your grade</li>
-        </ul>
-        <br/>
-        <p>Regards,<br/>Team Servocci</p>
-      </div>
-      `
-    );
+// 1️⃣ Email to STUDENT (Confirmation + E-Magazine Link)
+// ================================
+await sendEmail(
+  newSub.email,
+  "Subscription Successful – Servocci Career Guidance",
+  `
+  <div style="font-family: Arial; line-height: 1.6;">
+    <h2>🎉 Thank you for subscribing, ${newSub.name}!</h2>
+    <p>You are now subscribed to Servocci career updates.</p>
+    <p>We will send you:</p>
+    <ul>
+      <li>Career guidance resources</li>
+      <li>Exam & admission updates</li>
+      <li>Important opportunities based on your grade</li>
+    </ul>
+
+    <br/>
+    <h3>📘 Your Free E-Magazine</h3>
+    <p>Click below to instantly download your E-Magazine:</p>
+
+    <p>
+      <a href="https://res.cloudinary.com/dhpm7jmyy/image/upload/v1763554640/Binder1_1__compressed_pv5cfc.pdf"
+         style="display: inline-block; padding: 10px 16px; background: #ff4f00; color: #fff; text-decoration: none; border-radius: 6px;">
+         📥 Download E-Magazine
+      </a>
+    </p>
+
+    <br/>
+    <p>Regards,<br/>Team Servocci</p>
+  </div>
+  `
+);
+
 
     // ================================
     // 2️⃣ Email to ADMIN (hello@servocci.com)
@@ -122,27 +135,43 @@ router.post("/institution", async (req, res) => {
     await newSub.save();
 
     // ================================
-    // 1️⃣ Email to INSTITUTION (Confirmation)
-    // ================================
-    await sendEmail(
-      newSub.email,
-      "Institution Subscription Confirmed – Servocci",
-      `
-      <div style="font-family: Arial; line-height: 1.6;">
-        <h2>🏫 Thank you for subscribing, ${newSub.name}</h2>
-        <p>Dear ${newSub.contactPerson},</p>
-        <p>Your institution has been registered for updates from Servocci.</p>
-        <p>We will send:</p>
-        <ul>
-          <li>Education partnership options</li>
-          <li>Training & placement support</li>
-          <li>Student development programs</li>
-        </ul>
-        <br/>
-        <p>Regards,<br/>Team Servocci</p>
-      </div>
-      `
-    );
+// 1️⃣ Email to INSTITUTION (Confirmation + E-Magazine Link)
+// ================================
+await sendEmail(
+  newSub.email,
+  "Institution Subscription Confirmed – Servocci",
+  `
+  <div style="font-family: Arial; line-height: 1.6;">
+    <h2>🏫 Thank you for subscribing, ${newSub.name}</h2>
+    <p>Dear ${newSub.contactPerson},</p>
+
+    <p>Your institution has been successfully registered to receive updates from Servocci.</p>
+
+    <p>We will send:</p>
+    <ul>
+      <li>Education partnership opportunities</li>
+      <li>Training & placement collaboration</li>
+      <li>Workshops & student development programs</li>
+      <li>Career guidance resources for your institution</li>
+    </ul>
+
+    <br/>
+    <h3>📘 Complimentary E-Magazine</h3>
+    <p>Your institution also receives access to our exclusive E-Magazine. Click below to download:</p>
+
+    <p>
+      <a href="https://res.cloudinary.com/dhpm7jmyy/image/upload/v1763554640/Binder1_1__compressed_pv5cfc.pdf"
+         style="display: inline-block; padding: 10px 16px; background: #ff4f00; color: #fff; text-decoration: none; border-radius: 6px;">
+         📥 Download E-Magazine
+      </a>
+    </p>
+
+    <br/>
+    <p>Regards,<br/>Team Servocci</p>
+  </div>
+  `
+);
+
 
     // ================================
     // 2️⃣ Email to ADMIN (hello@servocci.com)
