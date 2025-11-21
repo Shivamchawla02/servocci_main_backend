@@ -77,22 +77,45 @@ export const loginStudent = async (req, res) => {
     if (!isMatch)
       return res.status(400).json({ success: false, message: "Invalid email or password" });
 
+    const token = generateToken(student._id);
+
+    // 🚀 NON-BLOCKING LOGIN EMAIL
+    try {
+      sendEmail(
+        student.email,
+        "New Login to Your Servocci Account",
+        `<p>Hello ${student.name},</p>
+         <p>You have successfully logged in to your Servocci account. If this wasn't you, please change your password immediately.</p>`
+      );
+
+      sendEmail(
+        "hello@servocci.com",
+        "User Logged In",
+        `<p>User logged in: ${student.name} (${student.email})</p>`
+      );
+    } catch (err) {
+      console.error("Login email error:", err);
+    }
+
+    // SUCCESS RESPONSE
     return res.json({
       success: true,
-      token: generateToken(student._id),
+      token,
       user: {
         id: student._id,
         name: student.name,
         email: student.email,
         phone: student.phone,
-        isAdmin: student.isAdmin || false, // ✅ Include isAdmin
+        isAdmin: student.isAdmin || false,
       },
     });
+
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 /* ================================
    FORGOT PASSWORD
