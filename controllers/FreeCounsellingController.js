@@ -26,36 +26,53 @@ export const createBooking = async (req, res) => {
 
     // ---------------------------------------
     // 📩 EMAIL TO USER (only if they provided email)
-    // ---------------------------------------
-    if (email) {
-      await resend.emails.send({
-        from: "Servocci <shivam@servocci.com>",
-        to: email,
-        subject: "Thank you for booking your free counselling session",
-        html: `
-          <p>Hi ${name},</p>
-          <p>Thank you for booking a free career counselling session with us. Our team will contact you shortly.</p>
-          <p><strong>Your Details:</strong><br/>
-          Phone: ${phone}<br/>
-          Preferred Date: ${preferredDate}<br/>
-          Preferred Time: ${preferredTime}<br/>
-          Course: ${course || "N/A"}<br/>
-          Message: ${message || "N/A"}
-          </p>
-          <p>Best regards,<br/>Servocci Counsellors</p>
-        `,
-      });
-    }
+if (email) {
+  await resend.emails.send({
+    from: "Servocci <shivam@servocci.com>",
+    to: email,
+    subject: "Thank you for booking your free counselling session",
+    html: `
+      <p>Hi ${name},</p>
+
+      <p>Thank you for booking a free career counselling session with Servocci Counsellors.</p>
+      <p>Our team will contact you shortly to confirm your session and guide you further.</p>
+
+      <p><strong>Your Booking Details:</strong><br/>
+      <strong>Phone:</strong> ${phone}<br/>
+      <strong>Preferred Date:</strong> ${preferredDate}<br/>
+      <strong>Preferred Time:</strong> ${preferredTime}<br/>
+      <strong>Course:</strong> ${course || "N/A"}<br/>
+      <strong>Message:</strong> ${message || "N/A"}
+      </p>
+
+      <hr>
+
+      <p>This is to formally acknowledge that we have successfully received your counselling session request.</p>
+      <p>We are available to discuss any further information, clarification, or next steps as required.</p>
+      <p>Please feel free to contact us at your convenience.</p>
+
+      <p>Thank you for connecting with us.</p>
+
+      <p>Regards,<br/>
+      Malik Praveen<br/>
+      Director, Servocci Counsellors<br/>
+      9811272387</p>
+    `,
+  });
+}
+
 
     // ---------------------------------------
     // 📩 EMAIL TO ADMIN (hello@servocci.com)
     // ---------------------------------------
+    // 📩 EMAIL TO ADMIN (hello@servocci.com)
     await resend.emails.send({
       from: "Servocci <shivam@servocci.com>",
       to: "hello@servocci.com",
       subject: "New Free Counselling Booking",
       html: `
         <p><strong>New Free Counselling Request Received:</strong></p>
+
         <p>
           <strong>Name:</strong> ${name}<br/>
           <strong>Phone:</strong> ${phone}<br/>
@@ -65,8 +82,18 @@ export const createBooking = async (req, res) => {
           <strong>Course:</strong> ${course || "N/A"}<br/>
           <strong>Message:</strong> ${message || "N/A"}
         </p>
+
+        <hr>
+
+        <p>Submitted via: Servocci Counsellors Website</p>
+
+        <p>Regards,<br/>
+        Malik Praveen<br/>
+        Director, Servocci Counsellors<br/>
+        9811272387</p>
       `,
     });
+
 
     return res.status(201).json({
       msg: "Your free counselling request has been submitted successfully.",

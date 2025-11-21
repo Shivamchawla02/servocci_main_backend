@@ -16,30 +16,50 @@ export const sendContactEmail = async (req, res) => {
 
   try {
     // Send email to admin
-    await resend.emails.send({
-      from: `Servocci Website <shivam@servocci.com>`,
-      to: "hello@servocci.com",
-      subject: subject || "New Contact Message from Servocci Website",
-      html: `
-        <h2>New Contact Form Message</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Subject:</strong> ${subject || "N/A"}</p>
-        <p><strong>Message:</strong><br>${message}</p>
-      `,
-    });
+await resend.emails.send({
+  from: `Servocci Website <shivam@servocci.com>`,
+  to: "hello@servocci.com",
+  subject: subject || "New Contact Message from Servocci Website",
+  html: `
+    <h2>New Contact Form Message</h2>
+    <p><strong>Name:</strong> ${name}</p>
+    <p><strong>Email:</strong> ${email}</p>
+    <p><strong>Subject:</strong> ${subject || "N/A"}</p>
+    <p><strong>Message:</strong><br>${message}</p>
+
+    <hr>
+    <p>Submitted via: Servocci Counsellors Website</p>
+
+    <p>Regards,<br/>
+    Malik Praveen<br/>
+    Director, Servocci Counsellors<br/>
+    9811272387</p>
+  `,
+});
+
 
     // Optional: Confirmation email to user
-    await resend.emails.send({
-      from: "Servocci <shivam@servocci.com>",
-      to: email,
-      subject: "We received your message",
-      html: `
-        <p>Hello ${name},</p>
-        <p>Thank you for contacting Servocci Counsellors. Our team will get back to you shortly.</p>
-        <p>Best Regards,<br>Servocci Team</p>
-      `,
-    });
+    // Confirmation email to user
+await resend.emails.send({
+  from: "Servocci <shivam@servocci.com>",
+  to: email,
+  subject: "We received your message",
+  html: `
+    <p>Hello ${name},</p>
+
+    <p>This is to formally acknowledge that we have successfully received your message.</p>
+    <p>We are available to discuss any further information, clarification, or next steps as required.</p>
+    <p>Please feel free to contact us at your convenience.</p>
+
+    <p>Thank you for reaching out to us.</p>
+
+    <p>Regards,<br/>
+    Malik Praveen<br/>
+    Director, Servocci Counsellors<br/>
+    9811272387</p>
+  `,
+});
+
 
     return res.status(200).json({ msg: "Message sent successfully." });
   } catch (error) {

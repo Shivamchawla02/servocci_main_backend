@@ -31,19 +31,53 @@ export const registerStudent = async (req, res) => {
 
     const student = await Student.create({ name, email, phone, password });
 
-    // Send welcome email
+
+    /* -------------------------------------------------------
+       📧 SEND WELCOME EMAIL TO USER — (Updated with signature)
+    --------------------------------------------------------- */
     await sendEmail(
       email,
       "Welcome to Servocci!",
-      `<p>Hello ${name}, your account has been created successfully.</p>`
+      `
+        <p>Hello ${name},</p>
+        <p>Your student account has been created successfully on Servocci.</p>
+        <p>You can now log in and access your dashboard anytime.</p>
+
+        <br>
+        <p>This is to formally acknowledge that your registration is complete.</p>
+        <p>For any help, clarification, or next steps, feel free to contact us.</p>
+
+        <br>
+        <p>Regards,<br/>
+        Malik Praveen<br/>
+        Director, Servocci Counsellors<br/>
+        9811272387</p>
+      `
     );
 
-    // Send admin alert email
+
+    /* -------------------------------------------------------
+       📧 SEND ADMIN ALERT — (Updated with signature)
+    --------------------------------------------------------- */
     await sendEmail(
       "hello@servocci.com",
       "New Student Registered",
-      `<p>New student registered: ${name}, ${email}, ${phone}</p>`
+      `
+        <h2>New Student Registration</h2>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Phone:</strong> ${phone}</p>
+
+        <hr>
+        <p>Registration received via Servocci Counsellors website.</p>
+
+        <p>Regards,<br/>
+        Malik Praveen<br/>
+        Director, Servocci Counsellors<br/>
+        9811272387</p>
+      `
     );
+
 
     return res.status(201).json({
       success: true,
@@ -53,14 +87,16 @@ export const registerStudent = async (req, res) => {
         name: student.name,
         email: student.email,
         phone: student.phone,
-        isAdmin: student.isAdmin || false, // ✅ Include isAdmin
+        isAdmin: student.isAdmin || false,
       },
     });
+
   } catch (err) {
     console.error("Register error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 /* ================================
    LOGIN STUDENT

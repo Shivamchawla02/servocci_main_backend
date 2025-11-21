@@ -131,23 +131,36 @@ export const updateUserTestReport = async (req, res) => {
     /* -------------------------------------------
        📧 OPTIONAL: SEND EMAIL TO USER WHEN REPORT IS READY
     --------------------------------------------- */
+try {
+  await resend.emails.send({
+    from: "Servocci <shivam@servocci.com>",
+    to: updatedUser.email,
+    subject: "Your Psychometric Report is Ready",
+    html: `
+      <p>Hello ${updatedUser.name},</p>
 
-    try {
-      await resend.emails.send({
-        from: "Servocci <shivam@servocci.com>",
-        to: updatedUser.email,
-        subject: "Your Psychometric Report is Ready",
-        html: `
-          <p>Hello ${updatedUser.name},</p>
-          <p>Your psychometric test report is now available.</p>
-          <p>You can access it here:</p>
-          <p><a href="${reportUrl}" target="_blank">${reportUrl}</a></p>
-          <p>Best Regards,<br>Servocci Team</p>
-        `,
-      });
-    } catch (emailErr) {
-      console.error("❌ Resend Email Error (Report Update):", emailErr);
-    }
+      <p>Your psychometric test report is now available.</p>
+      <p>You can access it here:</p>
+      <p><a href="${reportUrl}" target="_blank">${reportUrl}</a></p>
+
+      <hr>
+
+      <p>This is to formally acknowledge that we have successfully received your psychometric test report.</p>
+      <p>We are now available to discuss any further information, clarification, or next steps as required.</p>
+      <p>Please feel free to contact us at your convenience.</p>
+
+      <p>Thank you for your cooperation.</p>
+
+      <p>Regards,<br>
+      Malik Praveen<br>
+      Director, Servocci Counsellors<br>
+      9811272387</p>
+    `,
+  });
+} catch (emailErr) {
+  console.error("❌ Resend Email Error (Report Update):", emailErr);
+}
+
 
     /* ------------------------------------------- */
 
