@@ -14,6 +14,8 @@ import userTestRoutes from "./routes/userTestRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import subscribeRoutes from "./routes/subscribeRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
+import studentRoutes from "./routes/studentRoutes.js";
+
 
 dotenv.config();
 const app = express();
@@ -63,6 +65,7 @@ app.use("/api/blogs", blogRoutes);
 app.use("/api/user-tests", userTestRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/subscription", subscribeRoutes);
+app.use("/api/students", studentRoutes);
 
 // ===== DEFAULT / HEALTH CHECK =====
 app.get("/", (req, res) => {
