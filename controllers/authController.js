@@ -50,10 +50,10 @@ export const registerStudent = async (req, res) => {
         <p>For any help, clarification, or next steps, feel free to contact us.</p>
 
         <br>
-        <p>Regards,<br/>
-        Malik Praveen<br/>
-        Director, Servocci Counsellors<br/>
-        9811272387</p>
+        <p>Best Regards<br/>
+        Team Servocci Counsellors<br/>
+        +91-9958-21-9958 | +91-1141-61-8389<br/>
+        </p>
       `
     );
 
@@ -73,10 +73,6 @@ export const registerStudent = async (req, res) => {
         <hr>
         <p>Registration received via Servocci Counsellors website.</p>
 
-        <p>Regards,<br/>
-        Malik Praveen<br/>
-        Director, Servocci Counsellors<br/>
-        9811272387</p>
       `
     );
 

@@ -30,10 +30,6 @@ await resend.emails.send({
     <hr>
     <p>Submitted via: Servocci Counsellors Website</p>
 
-    <p>Regards,<br/>
-    Malik Praveen<br/>
-    Director, Servocci Counsellors<br/>
-    9811272387</p>
   `,
 });
 
@@ -53,10 +49,11 @@ await resend.emails.send({
 
     <p>Thank you for reaching out to us.</p>
 
-    <p>Regards,<br/>
-    Malik Praveen<br/>
-    Director, Servocci Counsellors<br/>
-    9811272387</p>
+      <br>
+      <p>Best Regards<br/>
+      Team Servocci Counsellors<br/>
+      +91-9958-21-9958 | +91-1141-61-8389<br/>
+      </p>
   `,
 });
 

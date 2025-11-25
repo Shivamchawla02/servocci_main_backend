@@ -56,7 +56,11 @@ export const addUserTest = async (req, res) => {
           <p>Hello ${name},</p>
           <p>Thank you for requesting a psychometric test with Servocci Counsellors.</p>
           <p>We will send your report to your email once it is ready. It will also be uploaded to your account and can be viewed after logging into our website.</p>
-          <p>Best Regards,<br>Servocci Team</p>
+          <br>
+        <p>Best Regards<br/>
+        Team Servocci Counsellors<br/>
+        +91-9958-21-9958 | +91-1141-61-8389<br/>
+        </p>
         `,
         });
 
@@ -151,10 +155,11 @@ try {
 
       <p>Thank you for your cooperation.</p>
 
-      <p>Regards,<br>
-      Malik Praveen<br>
-      Director, Servocci Counsellors<br>
-      9811272387</p>
+        <br>
+        <p>Best Regards<br/>
+        Team Servocci Counsellors<br/>
+        +91-9958-21-9958 | +91-1141-61-8389<br/>
+        </p>
     `,
   });
 } catch (emailErr) {

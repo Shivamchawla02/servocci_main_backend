@@ -53,10 +53,11 @@ if (email) {
 
       <p>Thank you for connecting with us.</p>
 
-      <p>Regards,<br/>
-      Malik Praveen<br/>
-      Director, Servocci Counsellors<br/>
-      9811272387</p>
+        <br>
+        <p>Best Regards<br/>
+        Team Servocci Counsellors<br/>
+        +91-9958-21-9958 | +91-1141-61-8389<br/>
+        </p>
     `,
   });
 }
@@ -87,10 +88,6 @@ if (email) {
 
         <p>Submitted via: Servocci Counsellors Website</p>
 
-        <p>Regards,<br/>
-        Malik Praveen<br/>
-        Director, Servocci Counsellors<br/>
-        9811272387</p>
       `,
     });
 
