@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import sendEmail from "../utils/sendEmail.js";
 import crypto from "crypto";
+import LoginLog from "../models/LoginLog.js";
+
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -115,6 +117,15 @@ export const loginStudent = async (req, res) => {
 
     const token = generateToken(student._id);
 
+    // 📌 Save login log
+    await LoginLog.create({
+      userId: student._id,
+      name: student.name,
+      email: student.email,
+      ip: req.ip,
+      userAgent: req.headers["user-agent"]
+    });
+
     // 🚀 NON-BLOCKING LOGIN EMAIL
     try {
       sendEmail(
@@ -133,7 +144,6 @@ export const loginStudent = async (req, res) => {
       console.error("Login email error:", err);
     }
 
-    // SUCCESS RESPONSE
     return res.json({
       success: true,
       token,
@@ -151,6 +161,7 @@ export const loginStudent = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 
 /* ================================
