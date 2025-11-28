@@ -1,45 +1,44 @@
 // routes/userTestRoutes.js
 import express from "express";
 import UserTest from "../models/UserTest.js";
-import Student from "../models/Student.js";
+import Student from "../models/Student.js"; // ✅ Import Student model
+import {
+  addUserTest,
+  getAllUserTests,
+  updateUserTestReport,
+} from "../controllers/userTestController.js";
 
 const router = express.Router();
 
-// ---------------------------------------------
-// POST a new user test
-// ---------------------------------------------
-router.post("/", async (req, res) => {
+// ➕ Save user test details
+router.post("/", addUserTest);
+router.post("/add", addUserTest);
+
+// 📋 Fetch all user test submissions
+router.get("/", getAllUserTests);
+
+// 📝 Update report URL (after Cloudinary upload)
+router.put("/:id", updateUserTestReport);
+
+// 🔍 Get user test by email
+router.get("/email/:email", async (req, res) => {
   try {
-    const { name, email, score, reportUrl } = req.body;
+    const { email } = req.params;
+    const user = await UserTest.findOne({ email: email.toLowerCase() });
 
-    // 1️⃣ Save the test details
-    const newTest = new UserTest({
-      name,
-      email: email.toLowerCase(),
-      score,
-      reportUrl,
-    });
-
-    await newTest.save();
-
-    // 2️⃣ Update Student record to mark psychometricTestGiven = true
-    const student = await Student.findOne({ email: email.toLowerCase() });
-
-    if (student) {
-      student.psychometricTestGiven = true;
-      await student.save();
-      console.log(`✅ Updated psychometricTestGiven for ${email}`);
-    } else {
-      console.log(`⚠️ No student found with email: ${email}`);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "No report found for this email",
+      });
     }
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
-      message: "Test saved and student updated successfully",
-      data: newTest,
+      data: user,
     });
   } catch (error) {
-    console.error("❌ Error saving user test:", error);
+    console.error("❌ Error fetching test report by email:", error);
     res.status(500).json({
       success: false,
       message: "Server error",
@@ -48,49 +47,35 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ---------------------------------------------
-// GET all user tests (admin)
-// ---------------------------------------------
-router.get("/", async (req, res) => {
+// ✅ Mark psychometricTestGiven = true when student starts test
+// Example usage: frontend calls this endpoint on "Start Test" or "Proceed"
+router.patch("/start/:email", async (req, res) => {
   try {
-    const tests = await UserTest.find().sort({ createdAt: -1 });
-    res.status(200).json({
-      success: true,
-      count: tests.length,
-      data: tests,
-    });
-  } catch (error) {
-    console.error("❌ Error fetching user tests:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
-  }
-});
+    const { email } = req.params;
 
-// ---------------------------------------------
-// DELETE a user test by ID (admin)
-// ---------------------------------------------
-router.delete("/:id", async (req, res) => {
-  try {
-    const deletedTest = await UserTest.findByIdAndDelete(req.params.id);
+    const student = await Student.findOne({ email: email.toLowerCase() });
 
-    if (!deletedTest) {
+    if (!student) {
       return res.status(404).json({
         success: false,
-        message: "User test not found",
+        message: "Student not found",
       });
     }
 
+    student.psychometricTestGiven = true;
+    await student.save();
+
     res.status(200).json({
       success: true,
-      message: "User test deleted successfully",
+      message: "Student marked as started psychometric test",
+      data: student,
     });
   } catch (error) {
-    console.error("❌ Error deleting user test:", error);
+    console.error("❌ Error updating psychometricTestGiven:", error);
     res.status(500).json({
       success: false,
       message: "Server error",
+      error: error.message,
     });
   }
 });
