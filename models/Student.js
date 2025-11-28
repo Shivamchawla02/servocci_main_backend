@@ -7,7 +7,13 @@ const studentSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     phone: { type: String, required: true },
     password: { type: String, required: true },
-    isAdmin: { type: Boolean, default: false }, // ✅ add this
+
+    isAdmin: { type: Boolean, default: false },
+
+    // ✅ New fields
+    psychometricTestGiven: { type: Boolean, default: false },
+    subscribedToEMagazine: { type: Boolean, default: false },
+
     resetToken: String,
     resetTokenExpire: Date,
   },
