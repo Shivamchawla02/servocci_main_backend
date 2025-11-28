@@ -42,10 +42,16 @@ router.post("/student", async (req, res) => {
     await newSub.save();
 
     // ✅ Update Student model to mark subscribedToEMagazine = true
-    await Student.findOneAndUpdate(
-      { email: emailLower },
-      { subscribedToEMagazine: true }
-    );
+   // ✅ Update existing student subscription flag
+const student = await Student.findOne({ email: emailLower });
+
+if (student) {
+  student.subscribedToEMagazine = true;
+  await student.save();
+  console.log(`✅ Updated subscribedToEMagazine for ${emailLower}`);
+} else {
+  console.log(`⚠️ No existing student found with email: ${emailLower}`);
+}
 
     // ================================
     // 1️⃣ Email to STUDENT (Confirmation + E-Magazine Link)
