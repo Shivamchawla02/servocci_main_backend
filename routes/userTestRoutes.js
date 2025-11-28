@@ -1,48 +1,41 @@
-import express from "express";
-import {
-  addUserTest,
-  getAllUserTests,
-  updateUserTestReport,
-} from "../controllers/userTestController.js";
-import UserTest from "../models/UserTest.js"; // ✅ ADD THIS LINE
+// controllers/userTestController.js
+import UserTest from "../models/UserTest.js";
+import Student from "../models/Student.js"; // ✅ Import Student model
 
-const router = express.Router();
-
-// ➕ Save user test details
-router.post("/", addUserTest);
-router.post("/add", addUserTest);
-
-// 📋 Fetch all user test submissions
-router.get("/", getAllUserTests);
-
-// 📝 Update report URL (after Cloudinary upload)
-router.put("/:id", updateUserTestReport);
-
-// 🔍 Get user test by email
-router.get("/email/:email", async (req, res) => {
+// Add user test
+export const addUserTest = async (req, res) => {
   try {
-    const { email } = req.params;
-    const user = await UserTest.findOne({ email: email.toLowerCase() });
+    const { name, email, score, reportUrl } = req.body;
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "No report found for this email",
-      });
+    // 1️⃣ Save the test details
+    const newTest = new UserTest({
+      name,
+      email: email.toLowerCase(),
+      score,
+      reportUrl,
+    });
+
+    await newTest.save();
+
+    // 2️⃣ Update Student record to mark psychometricTestGiven = true
+    const student = await Student.findOne({ email: email.toLowerCase() });
+
+    if (student) {
+      student.psychometricTestGiven = true;
+      await student.save();
     }
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
-      data: user,
+      message: "Test saved and student updated successfully",
+      data: newTest,
     });
   } catch (error) {
-    console.error("❌ Error fetching test report by email:", error);
+    console.error("❌ Error saving user test:", error);
     res.status(500).json({
       success: false,
       message: "Server error",
       error: error.message,
     });
   }
-});
-
-export default router;
+};
