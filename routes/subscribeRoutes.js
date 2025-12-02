@@ -1,42 +1,10 @@
 // routes/subscribeRoutes.js
 import express from "express";
 import Subscription from "../models/Subscription.js";
-import Student from "../models/Student.js";
+import Student from "../models/Student.js"; // ✅ Import Student model
 import sendEmail from "../utils/sendEmail.js";
 
 const router = express.Router();
-
-// Logo + Footer Components
-const emailHeader = `
-  <div style="text-align:center; margin-bottom:20px;">
-    <img src="https://res.cloudinary.com/dhpm7jmyy/image/upload/v1764674835/logoblackk_b8bazl.png"
-         alt="Servocci Logo" style="width:180px;" />
-  </div>
-`;
-
-const emailFooter = `
-  <hr style="margin-top:30px; border:0; border-top:1px solid #ddd;" />
-
-  <div style="text-align:center; font-size:14px; color:#555; margin-top:20px;">
-    <p style="margin:4px 0;">
-      <strong>Servocci Counsellors</strong>
-    </p>
-
-    <p style="margin:4px 0;">
-      <a href="https://servocci.com" target="_blank" style="color:#ff4f00; text-decoration:none;">
-        www.servocci.com
-      </a>
-    </p>
-
-    <p style="margin:4px 0;">
-      +91-9958-21-9958 | +91-1141-61-8389
-    </p>
-
-    <p style="margin:4px 0;">
-      hello@servocci.com
-    </p>
-  </div>
-`;
 
 // Helper validation
 const validateFields = (fields, body) => {
@@ -68,26 +36,30 @@ router.post("/student", async (req, res) => {
       phone: req.body.phone_number.trim(),
       school: req.body.school_name_optional || "",
       exam: req.body.entrance_exam_if_any || "",
-      remarks: req.body.remarks || "",
+      remarks: req.body.remarks || ""
     });
 
     await newSub.save();
 
-    // Update student subscription flag
-    const student = await Student.findOne({ email: emailLower });
-    if (student) {
-      student.subscribedToEMagazine = true;
-      await student.save();
-    }
+    // ✅ Update Student model to mark subscribedToEMagazine = true
+   // ✅ Update existing student subscription flag
+const student = await Student.findOne({ email: emailLower });
+
+if (student) {
+  student.subscribedToEMagazine = true;
+  await student.save();
+  console.log(`✅ Updated subscribedToEMagazine for ${emailLower}`);
+} else {
+  console.log(`⚠️ No existing student found with email: ${emailLower}`);
+}
 
     // ================================
-    // 1️⃣ Email to STUDENT
+    // 1️⃣ Email to STUDENT (Confirmation + E-Magazine Link)
     // ================================
     await sendEmail(
       newSub.email,
       "Subscription Successful – Servocci Career Guidance",
       `
-      ${emailHeader}
       <div style="font-family: Arial; line-height: 1.6;">
         <h2>🎉 Thank you for subscribing, ${newSub.name}!</h2>
         <p>You are now subscribed to Servocci career updates.</p>
@@ -109,22 +81,22 @@ router.post("/student", async (req, res) => {
           </a>
         </p>
 
-        <br/>
+        <br>
         <p>Best Regards<br/>
-        Team Servocci Counsellors</p>
+        Team Servocci Counsellors<br/>
+        +91-9958-21-9958 | +91-1141-61-8389<br/>
+        </p>
       </div>
-      ${emailFooter}
       `
     );
 
     // ================================
-    // 2️⃣ Email to ADMIN
+    // 2️⃣ Email to ADMIN (hello@servocci.com)
     // ================================
     await sendEmail(
       "hello@servocci.com",
       "🆕 New Student Subscription Received",
       `
-      ${emailHeader}
       <div style="font-family: Arial; line-height: 1.6;">
         <h2>New Student Subscription</h2>
         <p><strong>Name:</strong> ${newSub.name}</p>
@@ -134,13 +106,15 @@ router.post("/student", async (req, res) => {
         <p><strong>School:</strong> ${newSub.school}</p>
         <p><strong>Entrance Exam:</strong> ${newSub.exam}</p>
         <p><strong>Remarks:</strong> ${newSub.remarks}</p>
+        <br/>
+        <p>This subscription has been added to the database.</p>
       </div>
-      ${emailFooter}
       `
     );
 
     res.status(201).json({ message: "🎓 Student subscribed successfully!" });
   } catch (error) {
+    console.error("Error saving student subscription:", error);
     res.status(500).json({ message: "Error saving student subscription", error });
   }
 });
@@ -172,49 +146,59 @@ router.post("/institution", async (req, res) => {
       email: emailLower,
       phone: req.body.phone_number.trim(),
       address: req.body.address || "",
-      remarks: req.body.remarks || "",
+      remarks: req.body.remarks || ""
     });
 
     await newSub.save();
 
     // ================================
-    // 1️⃣ Email to INSTITUTION
+    // 1️⃣ Email to INSTITUTION (Confirmation + E-Magazine Link)
     // ================================
     await sendEmail(
       newSub.email,
       "Institution Subscription Confirmed – Servocci",
       `
-      ${emailHeader}
       <div style="font-family: Arial; line-height: 1.6;">
         <h2>🏫 Thank you for subscribing, ${newSub.name}</h2>
         <p>Dear ${newSub.contactPerson},</p>
 
         <p>Your institution has been successfully registered to receive updates from Servocci.</p>
 
+        <p>We will send:</p>
+        <ul>
+          <li>Education partnership opportunities</li>
+          <li>Training & placement collaboration</li>
+          <li>Workshops & student development programs</li>
+          <li>Career guidance resources for your institution</li>
+        </ul>
+
         <br/>
         <h3>📘 Complimentary E-Magazine</h3>
+        <p>Your institution also receives access to our exclusive E-Magazine. Click below to download:</p>
 
         <p>
           <a href="https://res.cloudinary.com/dhpm7jmyy/image/upload/v1763554640/Binder1_1__compressed_pv5cfc.pdf"
-             style="display:inline-block;padding:10px 16px;background:#ff4f00;color:#fff;text-decoration:none;border-radius:6px;">
+             style="display: inline-block; padding: 10px 16px; background: #ff4f00; color: #fff; text-decoration: none; border-radius: 6px;">
              📥 Download E-Magazine
           </a>
         </p>
 
-        <p>Best Regards<br/>Team Servocci Counsellors</p>
+        <br>
+        <p>Best Regards<br/>
+        Team Servocci Counsellors<br/>
+        +91-9958-21-9958 | +91-1141-61-8389<br/>
+        </p>
       </div>
-      ${emailFooter}
       `
     );
 
     // ================================
-    // 2️⃣ Email to ADMIN
+    // 2️⃣ Email to ADMIN (hello@servocci.com)
     // ================================
     await sendEmail(
       "hello@servocci.com",
       "🏫 New Institution Subscription Received",
       `
-      ${emailHeader}
       <div style="font-family: Arial; line-height: 1.6;">
         <h2>New Institution Subscription</h2>
         <p><strong>Institution:</strong> ${newSub.name}</p>
@@ -223,13 +207,15 @@ router.post("/institution", async (req, res) => {
         <p><strong>Phone:</strong> ${newSub.phone}</p>
         <p><strong>Address:</strong> ${newSub.address}</p>
         <p><strong>Remarks:</strong> ${newSub.remarks}</p>
+        <br/>
+        <p>This subscription has been added to the database.</p>
       </div>
-      ${emailFooter}
       `
     );
 
     res.status(201).json({ message: "🏫 Institution subscribed successfully!" });
   } catch (error) {
+    console.error("Error saving institution subscription:", error);
     res.status(500).json({ message: "Error saving institution subscription", error });
   }
 });
