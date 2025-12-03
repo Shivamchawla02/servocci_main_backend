@@ -17,7 +17,7 @@ const generateToken = (id) => {
 ================================= */
 export const registerStudent = async (req, res) => {
   try {
-    const { name, email, phone, password } = req.body;
+    const { name, email, phone, password, subscribedToEMagazine } = req.body;
 
     if (!name || !email || !phone || !password)
       return res.status(400).json({ success: false, message: "All fields are required" });
@@ -30,10 +30,17 @@ export const registerStudent = async (req, res) => {
     if (existingPhone)
       return res.status(400).json({ success: false, message: "Phone already exists" });
 
-    const student = await Student.create({ name, email, phone, password });
+    // SAVE WITH E-MAGAZINE BOOLEAN
+    const student = await Student.create({
+      name,
+      email,
+      phone,
+      password,
+      subscribedToEMagazine: subscribedToEMagazine || false,
+    });
 
     /* -------------------------------------------------------
-       📧 SEND WELCOME EMAIL TO USER — Updated branding
+       📧 SEND WELCOME EMAIL
     --------------------------------------------------------- */
     await sendEmail(
       email,
@@ -44,8 +51,7 @@ export const registerStudent = async (req, res) => {
         <p>You can now log in anytime and access your dashboard.</p>
 
         <br>
-        <p>This email confirms that your registration is successfully completed.</p>
-        <p>If you need any assistance, guidance, or next steps, feel free to reach out.</p>
+        <p>If you need any assistance, feel free to reach out.</p>
 
         <br>
         <p>Best Regards,<br/>
@@ -57,7 +63,58 @@ export const registerStudent = async (req, res) => {
     );
 
     /* -------------------------------------------------------
-       📧 SEND ADMIN ALERT — Updated branding
+       📘 IF USER CHECKED THE "E-MAGAZINE SUBSCRIBE" CHECKBOX
+       SEND E-MAGAZINE EMAIL IMMEDIATELY
+    --------------------------------------------------------- */
+    if (subscribedToEMagazine === true) {
+      await sendEmail(
+        email,
+        "Subscription Successful – Servocci Career Guidance",
+        `
+        <div style="font-family: Arial; line-height: 1.6;">
+          <h2>🎉 Thank you for subscribing, ${name}!</h2>
+          <p>You are now subscribed to Servocci career updates.</p>
+          <p>We will send you:</p>
+          <ul>
+            <li>Career guidance resources</li>
+            <li>Exam & admission updates</li>
+            <li>Important opportunities based on your grade</li>
+          </ul>
+
+          <br/>
+          <h3>📘 Your Free E-Magazine</h3>
+          <p>Click below to instantly download your E-Magazine:</p>
+
+          <p>
+            <a href="https://res.cloudinary.com/dhpm7jmyy/image/upload/v1763554640/Binder1_1__compressed_pv5cfc.pdf"
+               style="display: inline-block; padding: 10px 16px; background: #ff4f00; color: #fff; text-decoration: none; border-radius: 6px;">
+               📥 Download E-Magazine
+            </a>
+          </p>
+
+          <br>
+          <p>Best Regards<br/>
+          Team Servocci Counsellors<br/>
+          +91-9958-21-9958 | +91-1141-61-8389<br/>
+          </p>
+        </div>
+        `
+      );
+
+      // ADMIN ALERT
+      await sendEmail(
+        "hello@servocci.com",
+        "New E-Magazine Subscriber – Servocci Counsellors",
+        `
+          <h3>New Magazine Subscription</h3>
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Email:</strong> ${email}</p>
+        `
+      );
+    }
+
+    /* -------------------------------------------------------
+       📧 ADMIN ALERT FOR NEW USER
     --------------------------------------------------------- */
     await sendEmail(
       "hello@servocci.com",
@@ -67,9 +124,6 @@ export const registerStudent = async (req, res) => {
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Phone:</strong> ${phone}</p>
-
-        <hr>
-        <p>Registration received via <strong>Servocci Counsellors</strong> website.</p>
       `
     );
 
@@ -82,6 +136,7 @@ export const registerStudent = async (req, res) => {
         email: student.email,
         phone: student.phone,
         isAdmin: student.isAdmin || false,
+        subscribedToEMagazine: student.subscribedToEMagazine,
       },
     });
 
@@ -108,16 +163,16 @@ export const loginStudent = async (req, res) => {
 
     const token = generateToken(student._id);
 
-    // 📌 Save login log
+    // 📌 Log login details
     await LoginLog.create({
       userId: student._id,
       name: student.name,
       email: student.email,
       ip: req.ip,
-      userAgent: req.headers["user-agent"]
+      userAgent: req.headers["user-agent"],
     });
 
-    // 🚀 SEND LOGIN EMAIL (non-blocking)
+    // SEND LOGIN EMAIL (non-blocking)
     try {
       sendEmail(
         student.email,
@@ -150,6 +205,7 @@ export const loginStudent = async (req, res) => {
         email: student.email,
         phone: student.phone,
         isAdmin: student.isAdmin || false,
+        subscribedToEMagazine: student.subscribedToEMagazine,
       },
     });
 
