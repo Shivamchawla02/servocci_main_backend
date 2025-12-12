@@ -17,6 +17,7 @@ import contactRoutes from "./routes/contactRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import loginLogRoutes from "./routes/LoginLogRoutes.js";
 import magazineEmailRoutes from "./routes/magazineEmailRoutes.js";
+import eventRoutes from "./routes/eventRoutes.js";
 
 
 dotenv.config();
@@ -69,6 +70,7 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api/subscription", subscribeRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/login-logs", loginLogRoutes);
+app.use("/api/events", eventRoutes);
 app.use("/email", magazineEmailRoutes);
 
 // ===== DEFAULT / HEALTH CHECK =====
