@@ -17,7 +17,7 @@ import contactRoutes from "./routes/contactRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import loginLogRoutes from "./routes/LoginLogRoutes.js";
 import magazineEmailRoutes from "./routes/magazineEmailRoutes.js";
-import eventRoutes from "./routes/eventRoutes.js";
+import eventRoutes from "./routes/events.js";
 
 
 dotenv.config();
