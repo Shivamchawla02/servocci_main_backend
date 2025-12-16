@@ -18,6 +18,7 @@ import studentRoutes from "./routes/studentRoutes.js";
 import loginLogRoutes from "./routes/LoginLogRoutes.js";
 import magazineEmailRoutes from "./routes/magazineEmailRoutes.js";
 import eventRoutes from "./routes/events.js";
+import applicationRoutes from "./routes/applicationRoutes.js";
 
 
 dotenv.config();
@@ -72,6 +73,7 @@ app.use("/api/students", studentRoutes);
 app.use("/api/login-logs", loginLogRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/email", magazineEmailRoutes);
+app.use("/api/applications", applicationRoutes);
 
 // ===== DEFAULT / HEALTH CHECK =====
 app.get("/", (req, res) => {
