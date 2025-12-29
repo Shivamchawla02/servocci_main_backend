@@ -42,7 +42,7 @@ export const createApplication = async (req, res) => {
 
     /* ================= ADMIN EMAIL ================= */
     await resend.emails.send({
-      from: "Servocci Website <shivam@servocci.com>",
+      from: "Servocci Website <hello@servocci.com>",
       to: "hello@servocci.com",
       subject: `🎓 New Admission Application – ${university}`,
       html: `
@@ -63,7 +63,7 @@ export const createApplication = async (req, res) => {
 
     /* ================= USER CONFIRMATION EMAIL ================= */
     await resend.emails.send({
-      from: "Servocci Counsellors <shivam@servocci.com>",
+      from: "Servocci Counsellors <hello@servocci.com>",
       to: email,
       subject: "Your Application Has Been Received – Servocci Counsellors",
       html: `

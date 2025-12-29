@@ -28,7 +28,7 @@ export const createBooking = async (req, res) => {
     // 📩 EMAIL TO USER (only if they provided email)
 if (email) {
   await resend.emails.send({
-    from: "Servocci Counsellors <shivam@servocci.com>",
+    from: "Servocci Counsellors <hello@servocci.com>",
     to: email,
     subject: "Thank you for booking your free counselling session",
     html: `
@@ -68,7 +68,7 @@ if (email) {
     // ---------------------------------------
     // 📩 EMAIL TO ADMIN (hello@servocci.com)
     await resend.emails.send({
-      from: "Servocci <shivam@servocci.com>",
+      from: "Servocci <hello@servocci.com>",
       to: "hello@servocci.com",
       subject: "New Free Counselling Booking",
       html: `

@@ -40,7 +40,7 @@ export const addUserTest = async (req, res) => {
     try {
       // Email to Admin
       await resend.emails.send({
-        from: `Servocci Website <shivam@servocci.com>`,
+        from: `Servocci Website <hello@servocci.com>`,
         to: "hello@servocci.com",
         subject: "New Psychometric Test Submission",
         html: `
@@ -55,7 +55,7 @@ export const addUserTest = async (req, res) => {
 
       // Confirmation Email to User
       await resend.emails.send({
-        from: "Servocci Counsellors <shivam@servocci.com>",
+        from: "Servocci Counsellors <hello@servocci.com>",
         to: email,
         subject: "We received your test request",
         html: `
@@ -136,7 +136,7 @@ export const updateUserTestReport = async (req, res) => {
     // Optional: Send email to user when report is ready
     try {
       await resend.emails.send({
-        from: "Servocci Counsellors <shivam@servocci.com>",
+        from: "Servocci Counsellors <hello@servocci.com>",
         to: updatedUser.email,
         subject: "Your Psychometric Report is Ready",
         html: `
