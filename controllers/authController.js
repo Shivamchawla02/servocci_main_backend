@@ -221,10 +221,19 @@ export const loginStudent = async (req, res) => {
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
+
     const student = await Student.findOne({ email });
-    if (!student) return res.status(404).json({ success: false, message: "Email not found" });
+
+    // 🔐 Security: Never reveal if email exists
+    if (!student) {
+      return res.json({
+        success: true,
+        message: "If this email exists, a reset link has been sent.",
+      });
+    }
 
     const resetToken = crypto.randomBytes(32).toString("hex");
+
     student.resetToken = resetToken;
     student.resetTokenExpire = Date.now() + 10 * 60 * 1000;
     await student.save();
@@ -235,17 +244,31 @@ export const forgotPassword = async (req, res) => {
       email,
       "Reset Your Password – Servocci Counsellors",
       `
-        <p>You requested a password reset for your Servocci Counsellors account.</p>
-        <p>Click here: <a href="${resetUrl}">${resetUrl}</a></p>
+        <p>You requested a password reset.</p>
+        <p>
+          <a href="${resetUrl}" 
+             style="padding:10px 16px;background:#ff4f00;color:white;border-radius:6px;text-decoration:none;">
+             Reset Password
+          </a>
+        </p>
+        <p>This link expires in 10 minutes.</p>
       `
     );
 
-    res.json({ success: true, message: "Reset link sent to email" });
+    return res.json({
+      success: true,
+      message: "If this email exists, a reset link has been sent.",
+    });
+
   } catch (err) {
     console.error("Forgot Password Error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
+
 
 /* ================================
    RESET PASSWORD
