@@ -226,11 +226,11 @@ export const forgotPassword = async (req, res) => {
 
     // 🔐 Security: Never reveal if email exists
     if (!student) {
-      return res.json({
-        success: true,
-        message: "If this email exists, a reset link has been sent.",
-      });
-    }
+  return res.status(404).json({
+    success: false,
+    message: "This email is not registered. Please register first.",
+  });
+}
 
     const resetToken = crypto.randomBytes(32).toString("hex");
 
