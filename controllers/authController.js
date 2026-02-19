@@ -17,7 +17,8 @@ const generateToken = (id) => {
 ================================= */
 export const registerStudent = async (req, res) => {
   try {
-    const { name, email, phone, password, subscribedToEMagazine } = req.body;
+    const { name, phone, password, subscribedToEMagazine } = req.body;
+    const email = req.body.email.toLowerCase().trim();
 
     if (!name || !email || !phone || !password)
       return res.status(400).json({ success: false, message: "All fields are required" });
@@ -151,9 +152,11 @@ export const registerStudent = async (req, res) => {
 ================================= */
 export const loginStudent = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = req.body.email.toLowerCase().trim();
+    const { password } = req.body;
 
     const student = await Student.findOne({ email });
+
     if (!student)
       return res.status(400).json({ success: false, message: "Invalid email or password" });
 
@@ -220,9 +223,10 @@ export const loginStudent = async (req, res) => {
 ================================= */
 export const forgotPassword = async (req, res) => {
   try {
-    const { email } = req.body;
+    const email = req.body.email.toLowerCase().trim();
 
     const student = await Student.findOne({ email });
+
 
     // 🔐 Security: Never reveal if email exists
     if (!student) {
