@@ -72,10 +72,14 @@ export const ccavResponseHandler = async (req, res) => {
 
       // ✅ Redirect user based on payment result
       if (responseData.order_status === "Success") {
-        res.redirect("https://www.servocci.com/payment-success");
-      } else {
-        res.redirect("https://www.servocci.com/payment-failed");
-      }
+  res.redirect(
+    `https://www.servocci.com/payment-success?order_id=${responseData.order_id}&status=success`
+  );
+} else {
+  res.redirect(
+    `https://www.servocci.com/payment-failed?order_id=${responseData.order_id}&status=failed`
+  );
+}
     } catch (error) {
       console.error("❌ Error processing CCAvenue response:", error);
       res.status(500).send("Error handling payment response.");
