@@ -1,4 +1,4 @@
-import CareerApplication from "../models/CareerApplication.js";
+import CareerApplication from "../models/Career.js";
 import sendEmail from "../utils/sendEmail.js";
 
 export const submitCareerApplication = async (
