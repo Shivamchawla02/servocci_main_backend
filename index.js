@@ -19,6 +19,7 @@ import loginLogRoutes from "./routes/LoginLogRoutes.js";
 import magazineEmailRoutes from "./routes/magazineEmailRoutes.js";
 import eventRoutes from "./routes/events.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
+import careerRoutes from "./routes/careerRoutes.js";
 
 
 dotenv.config();
@@ -74,6 +75,10 @@ app.use("/api/login-logs", loginLogRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/email", magazineEmailRoutes);
 app.use("/api/applications", applicationRoutes);
+app.use(
+  "/api/careers",
+  careerRoutes
+);
 
 // ===== DEFAULT / HEALTH CHECK =====
 app.get("/", (req, res) => {
