@@ -20,6 +20,7 @@ import magazineEmailRoutes from "./routes/magazineEmailRoutes.js";
 import eventRoutes from "./routes/events.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
 import careerRoutes from "./routes/careerRoutes.js";
+import jobRoutes from "./routes/jobRoutes.js";
 
 
 dotenv.config();
@@ -79,6 +80,7 @@ app.use(
   "/api/careers",
   careerRoutes
 );
+app.use("/api/jobs", jobRoutes);
 
 // ===== DEFAULT / HEALTH CHECK =====
 app.get("/", (req, res) => {
